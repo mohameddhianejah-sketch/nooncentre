@@ -1,0 +1,223 @@
+/* =====================================================================
+   Services page — dedicated stylesheet
+   Design intent: a boutique spa "menu" rather than a generic SaaS card
+   grid — numbered items, accent top-border, dotted-era serif pricing,
+   soft lift on hover. Relies on the CSS custom properties already
+   defined globally in index.css (--teal-deep, --accent, --serif, etc).
+===================================================================== */
+
+/* ---------- Intro ---------- */
+.svc-intro{
+  padding-top:60px;
+  padding-bottom:10px;
+}
+.svc-intro-layout{
+  display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:48px; align-items:center;
+}
+.svc-intro-copy{ max-width:70ch; }
+.svc-intro-copy .kicker{
+  font-family:var(--serif); font-style:italic; color:var(--accent); font-size:1.05rem;
+}
+body.lang-ar .svc-intro-copy .kicker{ font-family:'Aref Ruqaa'; font-style:normal; }
+.svc-intro-copy h2{ font-size:clamp(1.9rem,3vw,2.6rem); margin-top:.2em; }
+
+.svc-intro-meta{
+  display:flex; gap:36px; margin-top:28px; padding-top:22px;
+  border-top:1px solid rgba(14,79,88,.14); flex-wrap:wrap;
+}
+.svc-intro-meta span{
+  font-size:.85rem; color:var(--ink-soft); display:flex; align-items:baseline; gap:6px;
+}
+.svc-intro-meta b{
+  font-family:var(--serif); font-size:1.7rem; color:var(--teal-ink); font-weight:600;
+}
+
+/* ---------- Main section / tabs ---------- */
+.svc-main{ padding-top:34px; }
+
+/* ---------- Forfait promo box (top right) ---------- */
+.svc-forfait-promo{
+  position:relative; overflow:hidden;
+  border-radius:18px 18px 4px 18px;
+  background:linear-gradient(150deg, var(--teal-mid), var(--teal-deep));
+  color:var(--white); padding:30px 26px 26px;
+  box-shadow:0 18px 40px -18px rgba(14,79,88,.5);
+}
+.svc-forfait-promo::before{
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(circle at 88% -10%, rgba(212,81,122,.35), transparent 45%),
+    linear-gradient(115deg, transparent 32%, rgba(255,255,255,.07) 46%, transparent 62%);
+  pointer-events:none;
+}
+.svc-forfait-promo > *{ position:relative; z-index:1; }
+.sfp-badge{
+  position:absolute; top:16px; inset-inline-end:16px; z-index:2;
+  width:76px; height:76px; border-radius:50%;
+  background:var(--accent); color:var(--white);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  box-shadow:0 8px 18px rgba(0,0,0,.25);
+  animation:sfp-pulse 2.4s ease-in-out infinite;
+}
+.sfp-badge b{ font-family:var(--serif); font-size:1.35rem; line-height:1; }
+.sfp-badge small{ font-family:var(--sans); font-size:.55rem; letter-spacing:.08em; margin-top:4px; text-transform:uppercase; opacity:.92; }
+@keyframes sfp-pulse{
+  0%,100%{ transform:scale(1); }
+  50%{ transform:scale(1.05); }
+}
+.sfp-kicker{
+  font-family:var(--sans); font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--accent); font-size:1rem; display:flex; align-items:center; gap:10px;
+}
+.sfp-kicker::before{ content:''; width:26px; height:2px; background:var(--accent); flex-shrink:0; }
+body.lang-ar .svc-forfait-promo .sfp-kicker{
+  font-family:'Aref Ruqaa'; font-weight:700; letter-spacing:0; text-transform:none; font-size:1.15rem;
+}
+.svc-forfait-promo .sfp-kicker, .svc-forfait-promo h3{ padding-inline-end:92px; }
+.svc-forfait-promo h3{ color:var(--white); font-size:1.42rem; margin:.25em 0 .4em; line-height:1.3; }
+.svc-forfait-promo p{ color:rgba(255,255,255,.82); font-size:.86rem; line-height:1.65; margin-bottom:16px; }
+.sfp-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.sfp-tags span{
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+  padding:4px 11px; border-radius:999px; font-size:.72rem; color:var(--white);
+}
+.svc-forfait-promo .btn{ border-radius:999px; }
+#forfaits{ scroll-margin-top:96px; }
+
+/* ---------- Category block ---------- */
+.svc-block{ margin-bottom:58px; scroll-margin-top:96px; }
+.svc-block-head{
+  display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+  margin-bottom:26px; padding-bottom:14px;
+  border-bottom:1px solid rgba(14,79,88,.16);
+}
+.svc-block-head h3{
+  font-size:1.7rem; margin:0; display:flex; align-items:center; gap:10px;
+}
+.svc-block-icon{ width:26px; height:26px; flex-shrink:0; }
+.svc-block-head span{
+  font-size:.76rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap;
+}
+body.lang-ar .svc-block-head span{ letter-spacing:0; text-transform:none; }
+
+/* ---------- Category photo banner ---------- */
+.svc-block-photo{ position:relative; border-radius:12px; overflow:hidden; min-height:120px; background:linear-gradient(160deg, var(--teal-mid), var(--teal-deep)); }
+.svc-block-photo img{ width:100%; height:300px; object-fit:cover; object-position:center 40%; display:block; }
+.svc-block-photo::after{
+  content:'';
+  position:absolute; bottom:0; inset-inline:0; height:clamp(40px, 12vw, 110px);
+  background:linear-gradient(180deg, rgba(250,246,239,0), var(--sand));
+  pointer-events:none;
+}
+
+/* ---------- Card grid ---------- */
+.svc-grid{
+  position:relative; z-index:1;
+  margin-top:-64px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));
+  gap:20px;
+  counter-reset:svc-index;
+}
+
+.svc-card{
+  counter-increment:svc-index;
+  position:relative;
+  background:var(--surface);
+  border-radius:4px 16px 4px 16px;
+  border-top:3px solid var(--accent);
+  padding:26px 22px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:168px;
+  box-shadow:0 1px 3px rgba(14,79,88,.06);
+  transition:transform .22s ease, box-shadow .22s ease;
+}
+.svc-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 22px 40px -22px rgba(14,79,88,.35);
+}
+.svc-card::before{
+  content:counter(svc-index, decimal-leading-zero);
+  position:absolute; top:14px; inset-inline-end:18px;
+  font-family:var(--serif); font-size:.78rem; color:rgba(14,79,88,.28);
+  letter-spacing:.04em;
+}
+
+.svc-card-body{ padding-inline-end:34px; }
+.svc-name{
+  font-size:1.18rem; color:var(--ink); margin:0 0 .35em;
+  font-family:var(--serif); font-weight:600; line-height:1.25;
+}
+.svc-desc{ font-size:.83rem; color:var(--ink-soft); margin:0; line-height:1.5; }
+.svc-desc-muted{ font-style:italic; opacity:.75; }
+body.lang-ar .svc-desc-muted{ font-style:normal; }
+
+.svc-card-foot{
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-top:18px; padding-top:14px; border-top:1px dashed rgba(14,79,88,.15);
+}
+.svc-price{
+  font-family:var(--serif); font-size:1.35rem; color:var(--teal-ink); white-space:nowrap;
+}
+.svc-price small{ font-family:var(--sans); font-size:.62rem; color:var(--ink-soft); margin-inline-start:2px; }
+
+.svc-card .btn-ghost.btn-sm{
+  padding:7px 16px; font-size:.78rem; border-color:var(--teal); color:var(--teal-ink);
+}
+.svc-card .btn-ghost.btn-sm:hover{ background:var(--teal-deep); color:var(--white); border-color:var(--teal-ink); }
+
+/* ---------- Packages ---------- */
+.svc-packages{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
+  gap:22px;
+}
+.svc-packages .package-card{
+  margin-top:0;
+  border-radius:14px;
+  position:relative;
+  overflow:hidden;
+}
+.svc-packages .package-card::after{
+  content:'';
+  position:absolute; top:0; inset-inline-end:0; width:90px; height:90px;
+  background:radial-gradient(circle at top right, rgba(212,81,122,.35), transparent 70%);
+  pointer-events:none;
+}
+.svc-packages .package-card h3{ font-size:1.35rem; }
+.svc-packages .package-card p{ font-size:.88rem; color:rgba(255,255,255,.85); line-height:1.7; }
+.svc-packages .package-card .price{ font-size:2rem; }
+
+/* ---------- Price note ---------- */
+.price-note{
+  font-size:.78rem; color:var(--ink-soft); margin-top:36px; font-style:italic; text-align:center;
+}
+body.lang-ar .price-note{ font-style:normal; }
+
+/* ---------- Responsive ---------- */
+@media (max-width:920px){
+  .svc-intro-layout{ grid-template-columns:1fr; gap:30px; }
+  .svc-forfait-promo{ max-width:420px; }
+  .svc-block-photo img{ height:200px; }
+}
+@media (max-width:640px){
+  .svc-grid{ grid-template-columns:1fr; }
+  .svc-intro-meta{ gap:22px; }
+  .svc-block-head{ flex-direction:column; align-items:flex-start; gap:4px; }
+  .svc-forfait-promo{ padding:24px 20px; }
+  .svc-forfait-promo h3{ font-size:1.25rem; }
+  .svc-card{ padding:22px 18px 18px; min-height:0; }
+  .svc-block-photo img{ height:160px; }
+  .svc-packages{ grid-template-columns:1fr; }
+  .sfp-badge{ width:64px; height:64px; }
+  .sfp-badge b{ font-size:1.15rem; }
+}
+
+/* ===================== Dark mode: line contrast fixes ===================== */
+[data-theme="dark"] .svc-intro-meta{ border-top-color:rgba(212,81,122,.22); }
+[data-theme="dark"] .svc-block-head{ border-bottom-color:rgba(212,81,122,.25); }
+[data-theme="dark"] .svc-card-foot{ border-top-color:rgba(212,81,122,.22); }
+[data-theme="dark"] .svc-card{ box-shadow:0 1px 3px rgba(0,0,0,.4); }
+[data-theme="dark"] .svc-card:hover{ box-shadow:0 22px 40px -22px rgba(0,0,0,.8); }

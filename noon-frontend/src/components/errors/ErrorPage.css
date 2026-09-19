@@ -1,0 +1,171 @@
+/* ---------------------------------------------------------------------------
+   Global error page — single reusable design for every error state.
+   Theme-aware (uses the app's CSS tokens, incl. the [data-theme="dark"] block),
+   RTL-aware (logical properties), responsive, reduced-motion friendly.
+   No search UI — only context-appropriate actions.
+--------------------------------------------------------------------------- */
+
+.error-page{
+  position:relative;
+  isolation:isolate;
+  min-height:100vh;
+  min-height:100svh;
+  display:grid;
+  place-items:center;
+  padding:clamp(24px, 6vw, 80px) var(--edge);
+  background:var(--sand);
+  overflow:hidden;
+}
+
+/* --- Decorative background (pure decoration, hidden from assistive tech) --- */
+.error-illustration{
+  position:absolute;
+  inset:-20% -10%;
+  z-index:0;
+  pointer-events:none;
+  user-select:none;
+}
+
+.error-illustration .ring{
+  position:absolute;
+  left:50%;
+  top:46%;
+  border:1.5px solid var(--teal-mid);
+  border-radius:50%;
+  opacity:.13;
+  will-change:transform;
+}
+
+.ring-1{ width:46vmin; height:46vmin; }
+.ring-2{ width:70vmin; height:70vmin; opacity:.10; }
+.ring-3{ width:96vmin; height:96vmin; opacity:.06; }
+
+.error-illustration .arch{
+  position:absolute;
+  left:50%;
+  top:46%;
+  width:62vmin;
+  height:52vmin;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 32%, rgba(212,81,122,.16) 0%, rgba(212,81,122,0) 62%);
+  opacity:.7;
+}
+
+.error-illustration .orbit{
+  position:absolute;
+  left:50%;
+  top:46%;
+  border:1px dashed var(--teal-mid);
+  border-radius:50%;
+  opacity:.10;
+  transform:translate(-50%,-50%) rotate(-14deg) scaleX(1.4);
+}
+
+.orbit-a{ width:44vmin; height:15vmin; }
+.orbit-b{ width:88vmin; height:26vmin; opacity:.07; }
+
+@keyframes error-breathe{
+  0%,100%{ transform:translate(-50%,-50%) scale(1); }
+  50%{ transform:translate(-50%,-50%) scale(1.045); }
+}
+@keyframes error-orbit{
+  0%,100%{ transform:translate(-50%,-50%) rotate(-14deg) scaleX(1.4); }
+  50%{ transform:translate(-50%,-50%) rotate(-10deg) scaleX(1.36); }
+}
+
+.error-illustration .ring-1{ animation:error-breathe 9s ease-in-out infinite; }
+.error-illustration .ring-2{ animation:error-breathe 12s ease-in-out infinite reverse; }
+.error-illustration .ring-3{ animation:error-breathe 15s ease-in-out infinite; }
+.error-illustration .orbit-a{ animation:error-orbit 11s ease-in-out infinite; }
+.error-illustration .orbit-b{ animation:error-orbit 14s ease-in-out infinite reverse; }
+
+/* --- Content --- */
+.error-content{
+  position:relative;
+  z-index:1;
+  text-align:center;
+  max-width:680px;
+}
+
+.error-brand{
+  font-family:var(--sans);
+  font-size:.72rem;
+  font-weight:500;
+  letter-spacing:.36em;
+  text-indent:.36em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin:0 0 20px;
+}
+
+body.lang-ar .error-brand{ letter-spacing:.12em; text-indent:.12em; }
+
+.error-code{
+  font-family:var(--serif);
+  font-weight:600;
+  line-height:.95;
+  font-size:clamp(4.5rem, 19vw, 10.5rem);
+  letter-spacing:.01em;
+  color:var(--teal-mid);
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text){
+  .error-code{
+    background:linear-gradient(160deg, var(--teal-mid) 10%, var(--teal-deep) 90%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+  }
+}
+
+.error-title{
+  font-family:var(--serif);
+  font-weight:500;
+  font-size:clamp(1.45rem, 4.4vw, 2.3rem);
+  color:var(--teal-ink);
+  margin:.5em 0 .18em;
+}
+
+.error-desc{
+  font-size:1rem;
+  line-height:1.75;
+  color:var(--ink-soft);
+  max-width:480px;
+  margin:0 auto 34px;
+}
+
+.error-actions{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:14px;
+}
+
+.error-actions .error-action{
+  min-height:46px;
+  font-weight:500;
+  letter-spacing:.02em;
+}
+
+.error-actions a:focus-visible,
+.error-actions button:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+  border-radius:999px;
+}
+
+/* --- Reduced motion --- */
+@media (prefers-reduced-motion: reduce){
+  .error-illustration .ring,
+  .error-illustration .orbit{ animation:none !important; }
+}
+
+/* --- Very small screens --- */
+@media (max-width: 480px){
+  .error-desc{ margin-bottom:26px; }
+  .error-actions{ flex-direction:column; }
+  .error-actions .error-action{ width:min(280px, 100%); justify-content:center; }
+}
