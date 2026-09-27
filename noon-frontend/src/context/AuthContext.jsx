@@ -1,38 +1,51 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { api, getToken, setToken } from '../api';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    const username = localStorage.getItem('noon_admin_username');
+    const username = sessionStorage.getItem('noon_admin_username');
     const token = getToken();
     return token && username ? { username } : null;
   });
   const [error, setError] = useState(null);
 
   async function login(username, password) {
-    setError(null);
     try {
       const data = await api.login(username, password);
       if (!data.is_staff) {
-        throw new Error("Ce compte n'a pas les droits d'administration.");
+        const msg = "Ce compte n'a pas les droits d'administration.";
+        setError(msg);
+        return { success: false, message: msg };
       }
       setToken(data.token);
-      localStorage.setItem('noon_admin_username', data.username);
+      sessionStorage.setItem('noon_admin_username', data.username);
       setUser({ username: data.username });
-      return true;
+      setError(null);
+      return { success: true, message: '' };
     } catch (e) {
-      setError(e.message || 'Échec de connexion');
-      return false;
+      const msg = e.message || 'Échec de connexion';
+      setError(msg);
+      return { success: false, message: msg };
     }
   }
 
   function logout() {
+    if (getToken()) api.logout().catch(() => {});
     setToken(null);
-    localStorage.removeItem('noon_admin_username');
+    sessionStorage.removeItem('noon_admin_username');
     setUser(null);
   }
+
+  useEffect(() => {
+    function handleSessionExpired() {
+      sessionStorage.removeItem('noon_admin_username');
+      setUser(null);
+    }
+    window.addEventListener('noon:admin-session-expired', handleSessionExpired);
+    return () => window.removeEventListener('noon:admin-session-expired', handleSessionExpired);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, logout, error }}>

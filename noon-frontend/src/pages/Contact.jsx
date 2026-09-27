@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLang } from '../context/LangContext';
 import { api, getClient, setClient } from '../api';
 import CalendarPicker from '../components/CalendarPicker';
 import { SpinningBorderButton } from '../components/SpinningBorderButton';
 import LocationMapCard from '../components/LocationMapCard';
 import ClientAuthCard from '../components/ClientAuthCard';
+import { ImagePlus, X } from 'lucide-react';
 
 const DAY_LABELS = {
   fr: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
@@ -26,6 +27,7 @@ const AR_MONTHS = ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي
 
 export default function Contact() {
   const { t, lang } = useLang();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [settings, setSettings] = useState(null);
   const [hours, setHours] = useState([]);
@@ -46,13 +48,17 @@ export default function Contact() {
   const [stepError, setStepError] = useState('');
   const [status, setStatus] = useState(null); // null | 'sending' | 'success' | 'error'
   const [submitError, setSubmitError] = useState(null); // API detail when save fails
-  const [waHref, setWaHref] = useState('');
   const [availability, setAvailability] = useState(null);
   const [anchorSlug, setAnchorSlug] = useState(null); // category whose time anchors the recommended sequence
   const [client, setClientState] = useState(() => getClient());
   const [authSuccess, setAuthSuccess] = useState('');
-  const [feedback, setFeedback] = useState({ text_fr: '', text_ar: '', avatar: null });
+  const [feedback, setFeedback] = useState({ text: '', avatar: null });
+  const [feedbackPreview, setFeedbackPreview] = useState('');
   const [feedbackStatus, setFeedbackStatus] = useState(null);
+
+  useEffect(() => () => {
+    if (feedbackPreview) URL.revokeObjectURL(feedbackPreview);
+  }, [feedbackPreview]);
 
   const allServices = useMemo(
     () => categories.flatMap((c) => c.services.filter((s) => s.is_active)),
@@ -142,7 +148,14 @@ export default function Contact() {
   }
 
   function saveSession(account) {
-    const session = { id: account.id, name: account.name, phone: account.phone, birthday: account.birthday };
+    const session = {
+      id: account.id,
+      name: account.name,
+      phone: account.phone,
+      birthday: account.birthday,
+      avatar_url: account.avatar_url || '',
+      session_token: account.session_token,
+    };
     setClientState(session);
     setClient(session);
   }
@@ -161,29 +174,38 @@ export default function Contact() {
 
   async function handleFeedbackSubmit(e) {
     e.preventDefault();
-    if (!feedback.text_fr.trim() || !feedback.text_ar.trim()) return;
+    if (!feedback.text.trim()) return;
     setFeedbackStatus('sending');
     try {
       const body = new FormData();
-      body.append('text_fr', feedback.text_fr);
-      body.append('text_ar', feedback.text_ar);
-      body.append('client_id', client.id);
-      body.append('phone', client.phone);
-      body.append('author_fr', client.name);
-      body.append('author_ar', client.name);
+      body.append('text_fr', feedback.text.trim());
+      body.append('text_ar', feedback.text.trim());
       body.append('rating', '5');
-      body.append('is_active', 'true');
-      body.append('order', '0');
       if (feedback.avatar) body.append('avatar', feedback.avatar);
       await api.createTestimonial(body);
-      setFeedback({ text_fr: '', text_ar: '', avatar: null });
+      setFeedback({ text: '', avatar: null });
+      setFeedbackPreview('');
       setFeedbackStatus('success');
     } catch {
       setFeedbackStatus('error');
     }
   }
 
+  function handleFeedbackPhotoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    setFeedback({ ...feedback, avatar: file });
+    setFeedbackPreview(URL.createObjectURL(file));
+  }
+
+  function removeFeedbackPhoto() {
+    setFeedback({ ...feedback, avatar: null });
+    setFeedbackPreview('');
+  }
+
   function handleDateSelect(dateStr) {
+    setStep(2);
     setForm((f) => ({ ...f, date: dateStr, times: {} }));
     setAnchorSlug(null);
     setAvailability(null);
@@ -258,6 +280,12 @@ export default function Contact() {
     setStep((s) => Math.max(1, s - 1));
   }
 
+  function startNewReservation() {
+    setStatus(null);
+    setSubmitError(null);
+    setStep(1);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!form.date) {
@@ -271,29 +299,10 @@ export default function Contact() {
     const serviceLabel = selectedLabels.join(' · ');
     const catSlugArr = [...new Set(selectedServices.map((s) => s.category_slug).filter(Boolean))];
     const categorySlugs = catSlugArr.join(',');
-    // primary time for the admin list = first selected category with a chosen time
-    const primaryTime = catSlugArr
-      .map((slug) => form.times[slug])
-      .find((x) => x) || null;
-    const timesList = catSlugArr
-      .map((slug) => `${slug}: ${form.times[slug] || '—'}`)
-      .join(', ');
+    const primaryTime = catSlugArr.map((slug) => form.times[slug]).find((x) => x) || null;
     const cName = client?.name || form.name;
     const cPhone = client?.phone || form.phone;
     const cBirthday = (client?.birthday || form.birthday || '').trim();
-    const text = lang === 'ar'
-      ? `مرحبا NOON Center،%0aأريد حجز موعد.%0aالاسم: ${cName}%0aالهاتف: ${cPhone}%0aالخدمات: ${serviceLabel || '—'}%0aالتاريخ المفضل: ${form.date}%0aالأوقات: ${timesList || '—'}%0a${form.message ? 'ملاحظة: ' + form.message : ''}`
-      : `Bonjour NOON Center,%0aJe souhaite prendre rendez-vous.%0aNom : ${cName}%0aTéléphone : ${cPhone}%0aServices : ${serviceLabel || '—'}%0aDate souhaitée : ${form.date}%0aHoraires : ${timesList || '—'}%0a${form.message ? 'Note : ' + form.message : ''}`;
-    const waHref = `https://wa.me/${whatsapp}?text=${text}`;
-
-    setWaHref(waHref);
-
-    // Redirect straight to WhatsApp inside the click gesture so popup blockers
-    // cannot swallow it. If blocked, the in-page fallback link is shown.
-    try { window.open(waHref, '_blank'); } catch { /* fallback link shown below */ }
-
-    // Save the booking with a timeout guard so the button can never stay
-    // stuck on "Envoi...".
     const bookingData = {
       client_id: client?.id,
       name: cName,
@@ -454,7 +463,7 @@ export default function Contact() {
       m += 30;
     }
     return (
-      <div className="cat-time-table">
+      <div className="cat-time-table" key={slug}>
         <div className="cat-time-title">
           <span>{categoryName}{isAnchor ? ` (${t('1er soin', 'العناية الأولى')})` : ''}</span>
           <em>{t(`Capacité : ${cap}`, `الطاقة: ${cap}`)}</em>
@@ -664,27 +673,11 @@ export default function Contact() {
                 {t('Sélectionnez vos soins puis envoyez la demande.', 'اختاري عناياتكِ ثم أرسلي الطلب.')}
               </p>
 
-            {status === 'success' && (
-              <div className="form-success">
-                {t('Demande envoyée', 'تم إرسال الطلب')}
-              </div>
-            )}
             {status === 'error' && (
               <div className="form-error">
                 {submitError
                   ? `${t("La demande n'a pas pu être enregistrée", 'تعذر حفظ الطلب')} : ${submitError}`
-                  : t("La demande n'a pas pu être enregistrée, mais vous pouvez quand même nous écrire via WhatsApp.", 'تعذر حفظ الطلب، لكن يمكنكِ مراسلتنا عبر واتساب مباشرة.')}
-                {waHref && (
-                  <a
-                    href={waHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn btn-gold"
-                    style={{ marginTop: 14, display: 'inline-flex', justifyContent: 'center' }}
-                  >
-                    {t('Envoyer sur WhatsApp', 'إرسال عبر واتساب')}
-                  </a>
-                )}
+                  : t("La demande n'a pas pu être enregistrée. Veuillez réessayer.", 'تعذر حفظ الطلب. يرجى المحاولة مرة أخرى.')}
               </div>
             )}
 
@@ -694,26 +687,65 @@ export default function Contact() {
                 )}
                 <div className="account-bar">
                   <span className="account-bar-info">
-                    {t('Connecté ·', 'متصلة ·')} <b>{client.name}</b> <span className="account-phone">{client.phone}</span>
+                    {client.session_token ? t('Connecté ·', 'متصلة ·') : t('Prêt à réserver ·', 'جاهز للحجز ·')} <b>{client.name}</b> <span className="account-phone">{client.phone}</span>
                   </span>
                   <SpinningBorderButton type="button" className="sbb-sm" onClick={handleLogout}>
                     {t('Se déconnecter', 'تسجيل الخروج')}
                   </SpinningBorderButton>
                 </div>
 
+                {client.session_token && (
                 <div className="feedback-box">
                   <h3>{t('Partagez votre expérience', 'شاركي تجربتك')}</h3>
-                  <p>{t('Votre avis pourra apparaître dans les témoignages de NOON.', 'يمكن أن يظهر رأيك ضمن آراء زبونات نون.')}</p>
+                  <p>{t('Écrivez-nous votre avis, dans la langue qui vous ressemble.', 'اكتبي لنا رأيك، وباللغة التي تفضلينها.')}</p>
                   <form onSubmit={handleFeedbackSubmit}>
-                    <div className="form-row"><label>{t('Votre avis (FR)', 'رأيك (بالفرنسية)')}</label><textarea required value={feedback.text_fr} onChange={(e) => setFeedback({ ...feedback, text_fr: e.target.value })} /></div>
-                    <div className="form-row"><label>{t('رأيك (AR)', 'Votre avis (AR)')}</label><textarea required value={feedback.text_ar} onChange={(e) => setFeedback({ ...feedback, text_ar: e.target.value })} /></div>
-                    <div className="form-row feedback-photo-field"><label>{t('Votre photo (optionnelle)', 'صورتك (اختياري)')}</label><input type="file" accept="image/*" onChange={(e) => setFeedback({ ...feedback, avatar: e.target.files[0] || null })} /></div>
-                    <button className="btn btn-ghost btn-sm" type="submit" disabled={feedbackStatus === 'sending'}>{t('Envoyer mon avis', 'إرسال رأيي')}</button>
-                    {feedbackStatus === 'success' && <span className="feedback-status">{t('Merci pour votre avis.', 'شكراً على رأيك.')}</span>}
+                    <div className="form-row feedback-text-field feedback-single-field"><label htmlFor="feedback-text">{t('Votre avis', 'رأيك')}</label><textarea id="feedback-text" className="feedback-textarea" dir="auto" placeholder={t('Écrivez-nous votre feedback et sentez-vous libre d’utiliser la langue que vous préférez...', 'اكتبي لنا رأيك بكل حرية وباللغة التي تفضلينها...')} value={feedback.text} onChange={(e) => setFeedback({ ...feedback, text: e.target.value })} /></div>
+                    <div className="form-row feedback-photo-field">
+                      <label>{t('Votre photo (optionnelle)', 'صورتك (اختياري)')}</label>
+                      <div className={`feedback-attachment ${feedbackPreview ? 'has-file' : ''}`}>
+                        <label className="feedback-attachment-trigger" htmlFor="feedback-photo">
+                          <ImagePlus size={17} strokeWidth={1.8} />
+                          <span>{t('Ajouter une photo', 'إضافة صورة')}</span>
+                          <input id="feedback-photo" className="feedback-photo-input" type="file" accept="image/*" onChange={handleFeedbackPhotoChange} />
+                        </label>
+                        {feedback.avatar && feedbackPreview && (
+                          <div className="feedback-attachment-card">
+                            <img src={feedbackPreview} alt="" />
+                            <span className="feedback-attachment-info">
+                              <strong>{feedback.avatar.name}</strong>
+                              <small>{(feedback.avatar.size / 1024 / 1024).toFixed(2)} MB</small>
+                            </span>
+                            <button type="button" className="feedback-attachment-remove" onClick={removeFeedbackPhoto} aria-label={t('Supprimer la photo', 'حذف الصورة')} title={t('Supprimer la photo', 'حذف الصورة')}>
+                              <X size={15} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button className="btn btn-ghost btn-sm feedback-submit" type="submit" disabled={feedbackStatus === 'sending'}><span>{t('Envoyer mon avis', 'إرسال رأيي')}</span><span className="feedback-submit-arrow" aria-hidden="true">↗</span></button>
+                    {feedbackStatus === 'success' && <span className="feedback-status">{t('Merci, votre avis sera publié après validation.', 'شكراً، سيُنشر رأيك بعد المراجعة.')}</span>}
                     {feedbackStatus === 'error' && <span className="form-error">{t('Impossible d’envoyer votre avis.', 'تعذر إرسال رأيك.')}</span>}
                   </form>
                 </div>
+                )}
 
+                {status === 'success' ? (
+                  <div className="booking-complete">
+                    <div className="booking-complete-mark" aria-hidden="true">✓</div>
+                    <span className="booking-complete-kicker">{t('Réservation enregistrée', 'تم تسجيل الحجز')}</span>
+                    <h4>{t('Merci, votre demande est bien arrivée.', 'شكراً، وصل طلبكِ بنجاح.')}</h4>
+                    <p>{t('Notre équipe vous contactera bientôt pour confirmer les détails de votre rendez-vous.', 'سيتصل بكِ فريقنا قريباً لتأكيد تفاصيل موعدكِ.')}</p>
+                    <div className="booking-complete-actions">
+                      <button type="button" className="wiz-next wiz-accent" onClick={startNewReservation}>
+                        {t('Nouvelle réservation', 'حجز موعد آخر')}
+                      </button>
+                      <button type="button" className="wiz-back" onClick={() => navigate('/')}>
+                        {t("Retour à l'accueil", 'العودة إلى الرئيسية')}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                <>
                 <div className="wiz-progress">
                   <div className="wiz-progress-fill" style={{ width: `${(step / 4) * 100}%` }} />
                 </div>
@@ -732,12 +764,19 @@ export default function Contact() {
                   <div className="form-row">
                     <label>{t('Soins souhaités (un ou plusieurs)', 'العنايات المطلوبة (واحدة أو أكثر)')}</label>
                     <div className="svc-pick">
-                      {categories.map((c) => {
+                      {categories.map((c, index) => {
                         const items = c.services.filter((s) => s.is_active);
                         if (!items.length) return null;
                         return (
-                          <div className="svc-pick-group" key={c.id}>
-                            <div className="svc-pick-cat">{t(c.name_fr, c.name_ar)}</div>
+                          <details
+                            className="svc-pick-group"
+                            key={c.id}
+                            open={index === 0 || items.some((s) => form.serviceIds.includes(s.id))}
+                          >
+                            <summary className="svc-pick-cat">
+                              {t(c.name_fr, c.name_ar)}
+                              <span className="svc-pick-count">{items.length}</span>
+                            </summary>
                             <div className="svc-pick-chips">
                               {items.map((s) => {
                                 const on = form.serviceIds.includes(s.id);
@@ -760,7 +799,7 @@ export default function Contact() {
                                 );
                               })}
                             </div>
-                          </div>
+                          </details>
                         );
                       })}
                       <div className="svc-pick-group">
@@ -833,6 +872,10 @@ export default function Contact() {
                         <span className="confirm-k">{t('Date', 'التاريخ')}</span>
                         <span className="confirm-v">{formatDate(form.date)}</span>
                       </div>
+                      <div className="confirm-row confirm-total">
+                        <span className="confirm-k">{t('Total', 'المجموع')}</span>
+                        <span className="confirm-v">{selectedTotal > 0 ? `${selectedTotal} TND` : t('À confirmer', 'يُحدد لاحقاً')}</span>
+                      </div>
                       {catSlugsForTime.length > 0 && Object.keys(form.times).length > 0 && (
                         <div className="confirm-row confirm-plan">
                           <span className="confirm-k">{t('Programme', 'البرنامج')}</span>
@@ -887,11 +930,13 @@ export default function Contact() {
                     <span className="wiz-arrow">←</span> {t('Retour', 'رجوع')}
                   </button>
                   <button type="submit" className="wiz-next wiz-accent" disabled={status === 'sending'}>
-                    {status === 'sending' ? t('Envoi...', 'جارٍ الإرسال...') : t('Envoyer via WhatsApp', 'إرسال عبر واتساب')}
+                    {status === 'sending' ? t('Enregistrement...', 'جارٍ التسجيل...') : t('Confirmer la demande', 'تأكيد الطلب')}
                   </button>
                 </div>
               )}
                 </form>
+                </>
+                )}
               </>
             </div>
             )}

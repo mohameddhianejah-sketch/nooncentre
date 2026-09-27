@@ -1,0 +1,403 @@
+/* ===== NOON Center — user (client) dashboard ===== */
+/* All class names here are scoped to the logged-in client area and are NOT
+   defined in index.css (verified via class scan). Global util classes
+   (.btn, .badge, .form-row, .field-error, .stat-cards, .form-card, etc.)
+   come from index.css and are intentionally reused, not redefined. */
+
+.user-shell {
+  display: grid;
+  grid-template-columns: 264px 1fr;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8edf2 0%, #f5e9f0 100%);
+  color: var(--ink);
+}
+
+/* ---------- Sidebar ---------- */
+.user-sidebar {
+  background: var(--white);
+  border-right: 1px solid var(--edge);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.user-sidebar-head {
+  padding: 20px 20px 14px;
+}
+
+.user-sidebar-head .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.brand-mini {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(58, 29, 41, 0.08), 0 10px 24px rgba(146, 77, 104, 0.08);
+}
+
+.brand-mini img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+  opacity: 0;
+  transition: opacity 0.22s ease, transform 0.3s ease;
+  transform: scale(0.88);
+}
+
+.brand-mini-light.is-active,
+.brand-mini-dark.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.user-sidebar-foot {
+  margin-top: auto;
+  padding: 14px 20px 22px;
+  border-top: 1px solid var(--edge);
+}
+
+.user-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.user-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.user-nav-item:hover { background: var(--sand-deep); color: var(--teal-deep); }
+
+.user-nav-item.active {
+  background: var(--teal-light);
+  color: var(--teal-ink);
+  font-weight: 600;
+}
+
+.user-logout {
+  color: var(--danger);
+}
+.user-logout:hover { background: color-mix(in srgb, var(--danger) 8%, transparent); color: var(--danger); }
+
+.user-nav-item.user-ghost-link {
+  color: var(--teal-deep);
+}
+
+/* ---------- Content column ---------- */
+.user-main {
+  padding: 28px 32px 48px;
+  max-width: var(--max-w);
+  min-width: 0;
+  background: linear-gradient(180deg, rgba(251, 241, 246, 0.75), rgba(247, 234, 241, 0.9));
+}
+
+.user-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 4px;
+}
+
+.user-topbar h1 { margin: 0; font-family: var(--serif); font-weight: 700; font-size: 1.6rem; }
+
+.user-hamburger {
+  display: none;
+  border: 0;
+  background: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.user-scrim {
+  display: none;
+}
+
+/* ---------- Overview ---------- */
+.user-welcome {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  background: var(--white);
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+.user-welcome h2 { margin: 0 0 4px; font-family: var(--serif); font-weight: 700; }
+.user-welcome p { margin: 0; color: var(--ink-soft); font-size: 0.94rem; }
+
+.user-avatar-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--teal);
+  color: #fff;
+  font-weight: 700;
+}
+
+.user-welcome-avatar,
+.user-welcome-avatar-fallback,
+.profile-avatar,
+.profile-avatar-fallback {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* ---------- Profile panel ---------- */
+.profile-avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+.profile-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ---------- Reservations ---------- */
+.reservations-list { display: flex; flex-direction: column; gap: 14px; }
+.reservation-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  background: var(--white);
+  border: 1px solid var(--edge);
+  border-radius: 14px;
+  transition: box-shadow 0.18s ease;
+}
+.reservation-item:hover { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06); }
+.reservation-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--teal-light);
+  color: var(--teal-ink);
+  flex-shrink: 0;
+}
+.reservation-item-body { flex: 1; min-width: 0; }
+.reservation-item-title { font-weight: 700; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
+.reservation-item-meta { display: flex; align-items: center; gap: 14px; color: var(--ink-soft); font-size: 0.88rem; flex-wrap: wrap; }
+.reservation-item-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.reservation-item-cancel { margin-left: auto; }
+
+/* ---------- Settings ---------- */
+.settings-list { display: flex; flex-direction: column; gap: 12px; }
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 244, 247, 0.68));
+  border: 1px solid rgba(58, 29, 41, 0.08);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 28px rgba(84, 45, 61, 0.06);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+}
+.settings-item-label {
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: var(--ink);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+.settings-item-desc {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+/* ---------- Toggle switch ---------- */
+.toggle { position: relative; display: inline-block; width: 46px; height: 26px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--edge);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.toggle input:checked + .toggle-slider { background: var(--teal); }
+.toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+.toggle input:focus-visible + .toggle-slider { outline: 2px solid var(--teal-deep); outline-offset: 2px; }
+
+/* ---------- i18n language chips ---------- */
+.lang-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.lang-chip {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--edge);
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.lang-chip.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #fff;
+}
+
+/* ---------- Dark theme typography readability only ---------- */
+[data-theme="dark"] .user-main,
+[data-theme="dark"] .user-shell,
+[data-theme="dark"] .user-sidebar {
+  color: #f9eef3;
+}
+
+[data-theme="dark"] .user-shell {
+  background: linear-gradient(180deg, #160c12 0%, #24131b 100%);
+}
+
+[data-theme="dark"] .user-sidebar {
+  background: #1b0f16;
+  border-right-color: rgba(232, 137, 167, 0.2);
+}
+
+[data-theme="dark"] .user-main {
+  background: linear-gradient(180deg, #21121a 0%, #2a1721 100%);
+}
+
+[data-theme="dark"] .user-welcome,
+[data-theme="dark"] .reservation-item,
+[data-theme="dark"] .settings-item {
+  background: #321b28;
+  border-color: rgba(232, 137, 167, 0.22);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+[data-theme="dark"] .brand-mini {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 1px rgba(232, 137, 167, 0.22), 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .lang-chip {
+  background: #24131b;
+  border-color: rgba(232, 137, 167, 0.35);
+  color: #fff7fa;
+}
+
+[data-theme="dark"] .lang-chip:hover {
+  background: #3a1f2d;
+  border-color: rgba(232, 137, 167, 0.58);
+}
+
+[data-theme="dark"] .user-topbar h1,
+[data-theme="dark"] .user-welcome h2,
+[data-theme="dark"] .user-welcome h3,
+[data-theme="dark"] .user-main h2,
+[data-theme="dark"] .user-main h3,
+[data-theme="dark"] .user-main h4 {
+  color: #fff7fa;
+}
+
+[data-theme="dark"] .user-topbar h1,
+[data-theme="dark"] .settings-item-label,
+[data-theme="dark"] .lang-chip,
+[data-theme="dark"] .user-nav-item {
+  font-weight: 600;
+  color: #f9eef3;
+}
+
+[data-theme="dark"] .settings-item-desc,
+[data-theme="dark"] .user-nav-item span,
+[data-theme="dark"] .user-welcome p,
+[data-theme="dark"] .reservation-item-meta,
+[data-theme="dark"] .user-main p,
+[data-theme="dark"] .user-main small,
+[data-theme="dark"] .user-main label {
+  color: rgba(249, 238, 243, 0.8);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .user-nav-item:not(.active) {
+  color: rgba(249, 238, 243, 0.82);
+}
+
+[data-theme="dark"] .user-nav-item.active,
+[data-theme="dark"] .user-nav-item.active span {
+  color: #fffafc;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .user-shell { grid-template-columns: 1fr; }
+  .user-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 272px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+  }
+  .user-sidebar.open { transform: translateX(0); }
+  .user-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 40;
+  }
+  .user-hamburger { display: inline-flex; }
+  .user-main { padding: 20px 16px 40px; }
+}

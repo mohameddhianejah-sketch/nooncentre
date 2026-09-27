@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import ServiceCategory, Service, Testimonial, GalleryItem, OpeningHour, SiteSettings, Booking, ClientAccount
+from .models import (
+    ServiceCategory, Service, Testimonial, GalleryItem, OpeningHour, SiteSettings, Booking,
+    ClientAccount, AdminAuditLog,
+)
 
 admin.site.site_header = "NOON Center — Administration"
 admin.site.site_title = "NOON Center Admin"
@@ -42,6 +45,15 @@ class OpeningHourAdmin(admin.ModelAdmin):
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    fields = [
+        'site_name', 'tagline_fr', 'tagline_ar',
+        'about_fr', 'about_ar',
+        'founder_name', 'founder_photo',
+        'founded_year',
+        'address_fr', 'address_ar', 'phone', 'whatsapp', 'facebook_url', 'map_query',
+        'latitude', 'longitude',
+    ]
+
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 
@@ -61,3 +73,20 @@ class BookingAdmin(admin.ModelAdmin):
     list_editable = ['status']
     search_fields = ['name', 'phone']
     date_hierarchy = 'created_at'
+
+
+@admin.register(AdminAuditLog)
+class AdminAuditLogAdmin(admin.ModelAdmin):
+    list_display = ['action', 'user', 'target_type', 'target_key', 'created_at']
+    list_filter = ['action', 'target_type']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['user', 'action', 'target_type', 'target_key', 'details', 'created_at']
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

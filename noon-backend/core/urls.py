@@ -3,7 +3,8 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ServiceCategoryViewSet, ServiceViewSet, TestimonialViewSet, GalleryItemViewSet,
     OpeningHourViewSet, BookingViewSet, ClientAccountViewSet, SiteSettingsView,
-    LoginView, DashboardSummaryView, AvailabilityView,
+    LoginView, LogoutView, DashboardSummaryView, AvailabilityView, AuthMeView, ClientMeView,
+    MyBookingsView, MyBookingCancelView, AuditLogView,
 )
 
 router = DefaultRouter()
@@ -16,6 +17,14 @@ router.register('bookings', BookingViewSet, basename='booking')
 router.register('clients', ClientAccountViewSet, basename='client')
 
 urlpatterns = [
+    # Specific self-service/staff paths must precede the router include so they
+    # are not captured by the <pk> detail routes.
+    path('auth/me/', AuthMeView.as_view(), name='auth-me'),
+    path('auth/logout/', LogoutView.as_view(), name='auth-logout'),
+    path('clients/me/', ClientMeView.as_view(), name='client-me'),
+    path('bookings/my/cancel/', MyBookingCancelView.as_view(), name='my-booking-cancel'),
+    path('bookings/my/', MyBookingsView.as_view(), name='my-bookings'),
+    path('admin/audit-logs/', AuditLogView.as_view(), name='audit-logs'),
     path('', include(router.urls)),
     path('settings/', SiteSettingsView.as_view(), name='site-settings'),
     path('auth/login/', LoginView.as_view(), name='auth-login'),

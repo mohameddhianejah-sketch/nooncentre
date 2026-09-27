@@ -7,3 +7,9 @@ Thumbs.db
 !.vscode/extensions.json
 .vs/
 .idea
+
+# Local credentials and database exports
+.env
+.env.*
+!.env.example
+db_export.json

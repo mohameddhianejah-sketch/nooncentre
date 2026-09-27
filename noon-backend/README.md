@@ -13,8 +13,8 @@ REST API powering the NOON Center website and admin dashboard.
 
   Settings auto-load `.env` via `python-dotenv`, but a real environment variable
   always wins. If `DATABASE_URL` is unset or empty the backend falls back to SQLite
-  (`db.sqlite3`), which is retained as a backup of the pre-migration data
-  (a full export is also saved as `db_export.json`).
+  (`db.sqlite3`). Database exports contain personal data and must be stored outside
+  the repository and never committed.
 - **Auth:** DRF Token authentication for the admin dashboard.
 
 ## Why PostgreSQL?
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 python manage.py migrate
 python manage.py seed_data      # populates categories, services, hours, testimonials
-python manage.py createsuperuser #anasalemlem123aS
+python manage.py createsuperuser
 python manage.py runserver
 ```
 
@@ -42,12 +42,14 @@ The built-in Django admin (a full alternative admin UI) is at `http://localhost:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DJANGO_SECRET_KEY` | insecure dev key | **Set a real random value in production** |
-| `DJANGO_DEBUG` | `True` | Set to `False` in production |
-| `DJANGO_ALLOWED_HOSTS` | `*` | Comma-separated list of allowed hosts in production |
+| `DJANGO_SECRET_KEY` | development-only key when DEBUG is true | Required in production; use a unique random secret |
+| `DJANGO_DEBUG` | `True` for local development | Set to `False` in production |
+| `DJANGO_ALLOWED_HOSTS` | localhost only | Explicit comma-separated production hostnames; `*` is rejected |
 | `DATABASE_URL` | unset (falls back to SQLite) | `postgres://user:pass@host:5432/dbname` to use PostgreSQL |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated frontend origins |
-| `CORS_ALLOW_ALL` | `True` | Set to `False` in production and rely on `CORS_ALLOWED_ORIGINS` |
+| `CORS_ALLOW_ALL` | `False` | Must remain `False` in production |
+| `DJANGO_SECURE_SSL_REDIRECT` | follows DEBUG | Keep enabled in production behind a correctly configured HTTPS proxy |
+| `DJANGO_HSTS_SECONDS` | 0 locally; 1 year in production | Keep enabled only when HTTPS is permanent |
 
 ## API reference
 
@@ -58,25 +60,28 @@ Public (no auth required):
 - `GET  /api/hours/` — opening hours
 - `GET  /api/settings/` — site settings (address, phone, about text, etc.)
 - `POST /api/bookings/` — create a booking request (used by the contact form)
+- `POST /api/clients/check/` — checks whether the submitted name and phone match an admin; returns no private client data
+- `POST /api/clients/` — create a client account with a password; returns a short-lived signed client session
+- `POST /api/clients/login/` — client name, phone, and password login
+- Existing client records need an initial password set from the trusted backend console with `python manage.py set_client_password`
 
 Admin only (require `Authorization: Token <token>` header, staff user):
-- `POST /api/auth/login/` — `{username, password}` → `{token, username, is_staff}`
+- `POST /api/auth/login/` — `{username, password}` → a rotating, 12-hour token; only active staff accounts can log in
+- `POST /api/auth/logout/` — revoke the current admin token
 - `GET  /api/dashboard/summary/` — booking/service counts for the dashboard overview
 - Full CRUD (`GET/POST/PUT/PATCH/DELETE`) on `/api/categories/`, `/api/services/`,
   `/api/testimonials/`, `/api/hours/{id}/`, `/api/bookings/`
 - `PATCH /api/settings/` — update site settings
 
-## Default admin login (created by the setup below)
-
-If you use the exact commands in this README with `createsuperuser`, you'll set
-your own username/password interactively. The demo data shipped for testing used
-`admin` / `noonadmin2026` — **change this immediately if you keep it**.
-
 ## Production checklist
 - Set `DJANGO_SECRET_KEY` to a long random value
 - Set `DJANGO_DEBUG=False`
 - Set `DJANGO_ALLOWED_HOSTS` to your real domain(s)
+- Set `DJANGO_SECURE_SSL_REDIRECT=True` and serve the site only over HTTPS
 - Attach a PostgreSQL database and set `DATABASE_URL`
-- Set `CORS_ALLOW_ALL=False` and `CORS_ALLOWED_ORIGINS` to your real frontend domain
+- Keep `CORS_ALLOW_ALL=False`; set `CORS_ALLOWED_ORIGINS` to your frontend origin if frontend and API use different origins
+- Admin lookup is not authentication by itself; every admin session still requires valid staff email and password credentials
+- Keep database exports, SQLite files, and uploaded media outside public/static hosting and outside Git
+- Run `python manage.py check --deploy` before deployment
 - Run `python manage.py collectstatic`
 - Serve with a real WSGI server (gunicorn/uwsgi) behind nginx, not `runserver`

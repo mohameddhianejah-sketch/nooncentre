@@ -3,15 +3,27 @@
 .gallery-intro .section-inner{
   width:min(860px, calc(100% - 48px)); max-width:none; margin-inline:auto;
   padding:30px clamp(24px, 5vw, 56px) 32px;
-  border:1px solid rgba(255,255,255,.16); border-radius:24px;
-  background:linear-gradient(135deg, rgba(212,81,122,.24), rgba(140,47,85,.2)); box-shadow:0 24px 60px -34px rgba(0,0,0,.7);
+  border:1px solid rgba(58,29,41,.08); border-radius:24px;
+  background:linear-gradient(135deg, rgba(212,81,122,.20), rgba(140,47,85,.14)); box-shadow:0 24px 60px -34px rgba(0,0,0,.25);
   backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
   animation:gallery-intro-welcome .8s cubic-bezier(.22,1,.36,1) both;
 }
 .gallery-intro .kicker,.gallery-intro h1,.gallery-intro p{ opacity:0; animation:gallery-intro-content .65s cubic-bezier(.22,1,.36,1) forwards; }
-.gallery-intro .kicker{ font-family:var(--serif); font-style:italic; color:#fff; font-size:1.05rem; animation-delay:.12s; }
-.gallery-intro h1{ max-width:720px; color:#fff; font-size:clamp(2rem,4vw,3.3rem); line-height:1.12; margin:.2em 0 .35em; animation-delay:.22s; }
-.gallery-intro p{ max-width:650px; color:rgba(255,255,255,.82); font-size:1rem; animation-delay:.34s; }
+.gallery-intro .kicker{ font-family:var(--serif); font-style:italic; color:var(--teal-ink); font-size:1.05rem; animation-delay:.12s; }
+.gallery-intro h1{ max-width:720px; color:var(--ink); font-size:clamp(2rem,4vw,3.3rem); line-height:1.12; margin:.2em 0 .35em; animation-delay:.22s; }
+.gallery-intro p{ max-width:650px; color:var(--ink-soft); font-size:1rem; animation-delay:.34s; }
+
+[data-theme="dark"] .gallery-intro .section-inner{
+  border-color:rgba(255,255,255,.12);
+  background:linear-gradient(135deg, rgba(212,81,122,.18), rgba(140,47,85,.12));
+  box-shadow:0 24px 60px -34px rgba(0,0,0,.7);
+}
+[data-theme="dark"] .gallery-intro .kicker,
+[data-theme="dark"] .gallery-intro h1,
+[data-theme="dark"] .gallery-intro p{
+  color:var(--ink);
+}
+[data-theme="dark"] .gallery-intro p{ color:rgba(233,240,239,.86); }
 @keyframes gallery-intro-welcome{ from{ opacity:0; transform:translateY(18px) scale(.98); } to{ opacity:1; transform:translateY(0) scale(1); } }
 @keyframes gallery-intro-content{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
 .gallery-main{ padding:42px 0 88px; }

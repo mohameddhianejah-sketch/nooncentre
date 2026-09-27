@@ -1,6 +1,9 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLang } from '../context/LangContext';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../api';
 import { SpinningBorderButton } from './SpinningBorderButton';
 import BirthdayPicker from './BirthdayPicker';
@@ -79,23 +82,21 @@ function AuthMediaSlider() {
 
 export default function ClientAuthCard({ id, initialMode = 'signup', onAuthenticated }) {
   const { t } = useLang();
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [mode, setMode] = useState(initialMode === 'login' ? 'login' : 'signup');
-  const [authData, setAuthData] = useState({ name: '', phone: '', birthday: '', code: '' });
-  const [fieldErrors, setFieldErrors] = useState({ name: '', phone: '', birthday: '' });
+  const [authData, setAuthData] = useState({ name: '', phone: '', birthday: '' });
+  const [fieldErrors, setFieldErrors] = useState({ name: '', phone: '' });
   const [authError, setAuthError] = useState('');
   const [authBusy, setAuthBusy] = useState(false);
   const [dupAlert, setDupAlert] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpError, setOtpError] = useState('');
-  const [otpCooldown, setOtpCooldown] = useState(0);
-  const [verifyBusy, setVerifyBusy] = useState(false);
-  const [debugCode, setDebugCode] = useState('');
-
-  useEffect(() => {
-    if (otpCooldown <= 0) return undefined;
-    const timer = setTimeout(() => setOtpCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [otpCooldown]);
+  const [clientPasswordStep, setClientPasswordStep] = useState(false);
+  const [clientPassword, setClientPassword] = useState('');
+  const [signupPassword, setSignupPassword] = useState('');
+  const [adminStep, setAdminStep] = useState(null);
+  const [adminCreds, setAdminCreds] = useState({ email: '', password: '' });
+  const [adminError, setAdminError] = useState('');
+  const [adminBusy, setAdminBusy] = useState(false);
 
   function handleAuthChange(e) {
     setAuthData((d) => ({ ...d, [e.target.name]: e.target.value }));
@@ -105,94 +106,51 @@ export default function ClientAuthCard({ id, initialMode = 'signup', onAuthentic
 
   function switchMode(next) {
     setMode(next);
+    setAdminStep(null);
+    setClientPasswordStep(false);
+    setClientPassword('');
+    setSignupPassword('');
     setAuthError('');
-    setOtpSent(false);
-    setOtpError('');
-    setDebugCode('');
-    setFieldErrors({ name: '', phone: '', birthday: '' });
+    setFieldErrors({ name: '', phone: '' });
   }
 
-  function validateBase(needBirthday) {
-    const errs = { name: '', phone: '', birthday: '' };
+  function validateBase() {
+    const errs = { name: '', phone: '' };
     const name = authData.name.trim();
     if (!name) errs.name = t('Veuillez entrer votre nom complet.', 'يرجى إدخال اسمك الكامل.');
     else if (name.length < 2 || name.length > 100) errs.name = t('Nom invalide.', 'اسم غير صالح.');
     const digits = authData.phone.replace(/\D/g, '');
     if (!digits) errs.phone = t('Veuillez entrer votre numéro de téléphone.', 'يرجى إدخال رقم هاتفك.');
     else if (digits.length < 8 || digits.length > 15) errs.phone = t('Numéro de téléphone invalide.', 'رقم هاتف غير صالح.');
-    if (needBirthday && !authData.birthday) errs.birthday = t('Veuillez choisir votre date de naissance.', 'يرجى اختيار تاريخ ميلادك.');
     setFieldErrors(errs);
-    return !errs.name && !errs.phone && !errs.birthday;
+    return !errs.name && !errs.phone;
   }
 
-  async function handleSendCode(e) {
+  async function handleSignup(e) {
     e.preventDefault();
-    if (!validateBase(true)) return;
+    if (!validateBase()) return;
     setAuthBusy(true);
     setAuthError('');
-    setOtpError('');
     try {
-      const res = await api.sendCode({ phone: authData.phone });
-      setOtpSent(true);
-      setDebugCode(res.debug_code || '');
-      setOtpCooldown(res.resend_after || 30);
-      setAuthData((d) => ({ ...d, code: '' }));
-    } catch (err) {
-      if (err.status === 409) {
-        setAuthError(t('Ce téléphone a déjà un compte. Connectez-vous.', 'هذا الهاتف له حساب بالفعل. سجّلي الدخول.'));
-        setDupAlert(true);
-      } else {
-        setAuthError(t("Impossible d'envoyer le code. Vérifiez votre numéro.", 'تعذر إرسال الرمز. تحققي من رقمك.'));
-      }
-    } finally {
-      setAuthBusy(false);
-    }
-  }
-
-  async function handleVerifyCode(e) {
-    e.preventDefault();
-    setVerifyBusy(true);
-    setOtpError('');
-    try {
-      const account = await api.verifyCode({
-        name: authData.name,
-        phone: authData.phone,
-        code: authData.code,
+      const account = await api.createClient({
+        name: authData.name.trim(),
+        phone: authData.phone.trim(),
         birthday: authData.birthday || null,
+        password: signupPassword,
       });
-      const ok = typeof onAuthenticated === 'function';
-      if (ok) onAuthenticated(account, t('Compte créé — vous pouvez réserver.', 'تم إنشاء حسابك — يمكنكِ الحجز.'));
-    } catch (err) {
-      const key = typeof err.message === 'string' ? err.message : '';
-      if (key === 'wrong_code') {
-        setOtpError(t('Code incorrect. Vérifiez le SMS et réessayez.', 'رمز غير صحيح. تحققي من الرسالة وأعيدي المحاولة.'));
-      } else if (key === 'expired') {
-        setOtpError(t('Le code a expiré. Renvoyez un nouveau code.', 'انتهت صلاحية الرمز. أرسلي رمزاً جديداً.'));
-      } else if (key === 'too_many_attempts') {
-        setOtpError(t('Trop de tentatives. Renvoyez un nouveau code.', 'محاولات كثيرة. أرسلي رمزاً جديداً.'));
-      } else {
-        setOtpError(t('Impossible de vérifier le code.', 'تعذر التحقق من الرمز.'));
+      if (typeof onAuthenticated === 'function') {
+        onAuthenticated(account, t('Compte créé — vous pouvez réserver.', 'تم إنشاء حسابك — يمكنكِ الحجز.'));
       }
-    } finally {
-      setVerifyBusy(false);
-    }
-  }
-
-  async function handleResendCode() {
-    setAuthBusy(true);
-    setOtpError('');
-    setAuthError('');
-    try {
-      const res = await api.sendCode({ phone: authData.phone });
-      setDebugCode(res.debug_code || '');
-      setOtpCooldown(res.resend_after || 30);
-      setAuthData((d) => ({ ...d, code: '' }));
     } catch (err) {
-      if (err.status === 409) {
-        setOtpError(t('Ce téléphone a déjà un compte.', 'هذا الهاتف له حساب بالفعل.'));
+      if (err.data?.phone || err.status === 409) {
         setDupAlert(true);
+        setAuthError(t('Ce numéro est déjà associé à un compte. Connectez-vous.', 'هذا الرقم مرتبط بحساب بالفعل. سجّل الدخول.'));
       } else {
-        setOtpError(t("Impossible d'envoyer le code.", 'تعذر إرسال الرمز.'));
+        setAuthError(err.status === 429
+          ? err.message
+          : err.data?.password
+            ? err.message
+            : t('Impossible de créer le compte. Vérifiez vos informations.', 'تعذر إنشاء الحساب. تحقق من المعلومات.'));
       }
     } finally {
       setAuthBusy(false);
@@ -201,16 +159,68 @@ export default function ClientAuthCard({ id, initialMode = 'signup', onAuthentic
 
   async function handleLogin(e) {
     e.preventDefault();
-    if (!validateBase(false)) return;
+    if (!validateBase()) return;
     setAuthBusy(true);
     setAuthError('');
     try {
-      const account = await api.checkClient({ name: authData.name, phone: authData.phone });
-      if (typeof onAuthenticated === 'function') onAuthenticated(account);
+      const account = await api.checkClient({ name: authData.name.trim(), phone: authData.phone.trim() });
+      if (account.is_admin) {
+        setAdminStep(account);
+        setAdminCreds({ email: '', password: '' });
+        setAdminError('');
+      } else if (account.client_exists && typeof onAuthenticated === 'function') {
+        setClientPasswordStep(true);
+        setClientPassword('');
+      } else {
+        setAuthError(t('Nom ou numéro non reconnu. Créez un compte ou réessayez.', 'الاسم أو الرقم غير معروف. أنشئ حساباً أو حاول مرة أخرى.'));
+      }
     } catch {
-      setAuthError(t('Aucun compte trouvé avec ces informations. Créez votre compte.', 'لا يوجد حساب بهذه المعلومات. أنشئي حسابك.'));
+      setAuthError(t('Impossible de vérifier ces informations. Réessayez.', 'تعذر التحقق من هذه المعلومات. حاول مرة أخرى.'));
     } finally {
       setAuthBusy(false);
+    }
+  }
+
+  async function handleClientLogin(e) {
+    e.preventDefault();
+    setAuthBusy(true);
+    setAuthError('');
+    try {
+      const account = await api.loginClient({
+        name: authData.name.trim(),
+        phone: authData.phone.trim(),
+        password: clientPassword,
+      });
+      if (typeof onAuthenticated === 'function') onAuthenticated(account);
+    } catch (error) {
+      setAuthError(error.status === 429
+        ? error.message
+        : t('Mot de passe incorrect ou compte à activer auprès du centre.', 'كلمة المرور غير صحيحة أو الحساب بحاجة إلى تفعيل من المركز.'));
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  function handleAdminChange(e) {
+    setAdminCreds((c) => ({ ...c, [e.target.name]: e.target.value }));
+    setAdminError('');
+  }
+
+  async function handleAdminSubmit(e) {
+    e.preventDefault();
+    setAdminBusy(true);
+    setAdminError('');
+    try {
+      const { success, message } = await login(adminCreds.email.trim(), adminCreds.password);
+      if (success) {
+        navigate('/admin');
+      } else {
+        setAdminError(/credential|password|mot de passe|login/i.test(message)
+          ? t('Adresse e-mail ou mot de passe incorrect.', 'البريد الإلكتروني أو كلمة المرور غير صحيحة.')
+          : message);
+      }
+    } finally {
+      setAdminBusy(false);
     }
   }
 
@@ -233,8 +243,8 @@ export default function ClientAuthCard({ id, initialMode = 'signup', onAuthentic
           </h3>
           <p className="auth-sub">
             {mode === 'login'
-              ? t('Retrouvez votre compte avec votre nom et votre téléphone.', 'اكتشفي حسابكِ باسمكِ وهاتفكِ.')
-              : t('Votre nom, téléphone et date de naissance créent votre compte. La réservation s’ouvre ensuite.', 'اسمكِ وهاتفكِ وتاريخ ميلادكِ يُنشئون حسابكِ. يُفتح الحجز بعد ذلك.')}
+              ? t('Saisissez le nom complet et le téléphone du compte. Les clients entrent leur mot de passe ; les administrateurs confirment avec leur e-mail et mot de passe.', 'أدخل الاسم الكامل ورقم الهاتف. يستخدم العملاء كلمة مرورهم، ويؤكد المسؤولون عبر البريد الإلكتروني وكلمة المرور.')
+              : t('Créez un mot de passe pour retrouver votre profil et vos réservations.', 'أنشئ كلمة مرور للعودة إلى ملفك وحجوزاتك.')}
           </p>
 
           <div className="auth-tabs" role="tablist" aria-label={t('Connexion ou inscription', 'دخول أو إنشاء حساب')}>
@@ -258,187 +268,128 @@ export default function ClientAuthCard({ id, initialMode = 'signup', onAuthentic
             </button>
           </div>
 
-          {otpSent && (
-            <p className="form-note" style={{ marginTop: 6 }}>
-              {t('Un code de vérification a été envoyé au ', 'تم إرسال رمز التحقق إلى ')}
-              <b>{authData.phone}</b>
-            </p>
-          )}
-
-          {mode === 'signup' && !otpSent ? (
-            <form onSubmit={handleSendCode} noValidate>
-              <div className="form-two">
+          <form onSubmit={mode === 'signup' ? handleSignup : clientPasswordStep ? handleClientLogin : handleLogin} noValidate>
+            {clientPasswordStep ? (
+              <>
+                <p className="form-note">
+                  {t(`Compte client : ${authData.name.trim()}`, `حساب العميل: ${authData.name.trim()}`)}
+                </p>
                 <div className="form-row">
-                  <label htmlFor="ca-name">{t('Nom complet', 'الاسم الكامل')}</label>
+                  <label htmlFor="ca-client-password">{t('Mot de passe', 'كلمة المرور')}</label>
                   <input
-                    id="ca-name"
-                    type="text"
-                    name="name"
-                    value={authData.name}
-                    onChange={handleAuthChange}
-                    aria-invalid={fieldErrors.name ? true : undefined}
-                    aria-describedby={fieldErrors.name ? 'ca-name-error' : undefined}
-                    autoComplete="name"
+                    id="ca-client-password"
+                    type="password"
+                    autoComplete="current-password"
+                    value={clientPassword}
+                    onChange={(event) => setClientPassword(event.target.value)}
                     required
                   />
-                  {fieldErrors.name && (
-                    <p className="field-error" id="ca-name-error" role="alert">{fieldErrors.name}</p>
-                  )}
                 </div>
-                <div className="form-row">
-                  <label htmlFor="ca-phone">{t('Téléphone', 'الهاتف')}</label>
-                  <input
-                    id="ca-phone"
-                    type="tel"
-                    name="phone"
-                    value={authData.phone}
-                    onChange={handleAuthChange}
-                    aria-invalid={fieldErrors.phone ? true : undefined}
-                    aria-describedby={fieldErrors.phone ? 'ca-phone-error' : undefined}
-                    autoComplete="tel"
-                    required
-                  />
-                  {fieldErrors.phone && (
-                    <p className="field-error" id="ca-phone-error" role="alert">{fieldErrors.phone}</p>
-                  )}
-                </div>
-              </div>
+                {authError && <div className="form-error" role="alert">{authError}</div>}
+                <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={authBusy}>
+                  {authBusy ? t('Connexion...', 'جارٍ الدخول...') : t('Ouvrir mon profil', 'فتح ملفي')}
+                </SpinningBorderButton>
+                <p className="form-note" style={{ textAlign: 'center', marginTop: 12 }}>
+                  <button type="button" className="btn-link-style" onClick={() => { setClientPasswordStep(false); setClientPassword(''); setAuthError(''); }}>
+                    {t('Retour', 'رجوع')}
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+            <div className="form-two">
               <div className="form-row">
-                <label htmlFor="ca-birthday">{t('Date de naissance', 'تاريخ الميلاد')}</label>
-                <BirthdayPicker
-                  id="ca-birthday"
-                  value={authData.birthday}
-                  onChange={(iso) => {
-                    setAuthData((d) => ({ ...d, birthday: iso }));
-                    setAuthError('');
-                    setFieldErrors((f) => ({ ...f, birthday: '' }));
-                  }}
-                  hasError={!!fieldErrors.birthday}
-                  errorId={fieldErrors.birthday ? 'ca-birthday-error' : undefined}
+                <label htmlFor="ca-name">{t('Nom complet', 'الاسم الكامل')}</label>
+                <input
+                  id="ca-name"
+                  type="text"
+                  name="name"
+                  value={authData.name}
+                  onChange={handleAuthChange}
+                  aria-invalid={fieldErrors.name ? true : undefined}
+                  aria-describedby={fieldErrors.name ? 'ca-name-error' : undefined}
+                  autoComplete="name"
+                  required
                 />
-                {fieldErrors.birthday && (
-                  <p className="field-error" id="ca-birthday-error" role="alert">{fieldErrors.birthday}</p>
+                {fieldErrors.name && (
+                  <p className="field-error" id="ca-name-error" role="alert">{fieldErrors.name}</p>
                 )}
               </div>
-              {authError && (
-                <div className="form-error" role="alert" style={{ marginBottom: 12 }}>{authError}</div>
-              )}
-              <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={authBusy}>
-                {authBusy
-                  ? t('Patientez...', 'يرجى الانتظار...')
-                  : t('Envoyer le code de vérification', 'إرسال رمز التحقق')}
-              </SpinningBorderButton>
-              <p className="form-note" style={{ textAlign: 'center', marginTop: 12 }}>
+              <div className="form-row">
+                <label htmlFor="ca-phone">{t('Téléphone', 'الهاتف')}</label>
+                <input
+                  id="ca-phone"
+                  type="tel"
+                  name="phone"
+                  value={authData.phone}
+                  onChange={handleAuthChange}
+                  aria-invalid={fieldErrors.phone ? true : undefined}
+                  aria-describedby={fieldErrors.phone ? 'ca-phone-error' : undefined}
+                  autoComplete="tel"
+                  required
+                />
+                {fieldErrors.phone && (
+                  <p className="field-error" id="ca-phone-error" role="alert">{fieldErrors.phone}</p>
+                )}
+              </div>
+            </div>
+
+            {mode === 'signup' && (
+              <>
+                <div className="form-row">
+                  <label htmlFor="ca-birthday">{t('Date de naissance (optionnel)', 'تاريخ الميلاد (اختياري)')}</label>
+                  <BirthdayPicker
+                    id="ca-birthday"
+                    value={authData.birthday}
+                    onChange={(iso) => {
+                      setAuthData((d) => ({ ...d, birthday: iso }));
+                      setAuthError('');
+                    }}
+                  />
+                </div>
+                <div className="form-row">
+                  <label htmlFor="ca-signup-password">{t('Mot de passe', 'كلمة المرور')}</label>
+                  <input
+                    id="ca-signup-password"
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    value={signupPassword}
+                    onChange={(event) => setSignupPassword(event.target.value)}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            {authError && (
+              <div className="form-error" role="alert" style={{ marginBottom: 12 }}>{authError}</div>
+            )}
+
+            <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={authBusy}>
+              {authBusy
+                ? t('Patientez...', 'يرجى الانتظار...')
+                : mode === 'signup'
+                  ? t('Créer mon compte', 'إنشاء حسابي')
+                  : t('Continuer', 'متابعة')}
+            </SpinningBorderButton>
+
+            <p className="form-note" style={{ textAlign: 'center', marginTop: 12 }}>
+              {mode === 'signup' ? (
                 <button type="button" className="btn-link-style" onClick={() => switchMode('login')}>
                   {t('Déjà un compte ? Connectez-vous', 'لديكِ حساب؟ سجّلي الدخول')}
                 </button>
-              </p>
-            </form>
-          ) : mode === 'signup' && otpSent ? (
-            <div className="otp-step">
-              {debugCode && (
-                <p className="otp-debug">
-                  {t('Code de test (mode démo) : ', 'رمز الاختبار (وضع تجريبي) : ')}
-                  <b>{debugCode}</b>
-                </p>
-              )}
-              <form onSubmit={handleVerifyCode}>
-                <div className="form-row">
-                  <label htmlFor="ca-otp">{t('Code de vérification', 'رمز التحقق')}</label>
-                  <input
-                    id="ca-otp"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    name="code"
-                    maxLength={6}
-                    value={authData.code}
-                    onChange={handleAuthChange}
-                    placeholder="••••••"
-                    autoFocus
-                    required
-                  />
-                </div>
-                {otpError && (
-                  <div className="form-error" role="alert" style={{ marginBottom: 12 }}>{otpError}</div>
-                )}
-                <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={verifyBusy}>
-                  {verifyBusy
-                    ? t('Vérification...', 'جارٍ التحقق...')
-                    : t('Vérifier le code', 'التحقق من الرمز')}
-                </SpinningBorderButton>
-                <div className="otp-actions">
-                  <button type="button" className="btn-link-style" onClick={handleResendCode} disabled={otpCooldown > 0 || authBusy}>
-                    {otpCooldown > 0
-                      ? t(`Renvoyer dans ${otpCooldown}s`, `إعادة الإرسال بعد ${otpCooldown} ث`)
-                      : t('Renvoyer le code', 'إعادة إرسال الرمز')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-link-style"
-                    onClick={() => { setOtpSent(false); setOtpError(''); setDebugCode(''); setAuthData((d) => ({ ...d, code: '' })); }}
-                  >
-                    {t('Modifier le numéro', 'تغيير الرقم')}
-                  </button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <form onSubmit={handleLogin} noValidate>
-              <div className="form-two">
-                <div className="form-row">
-                  <label htmlFor="ca-name-login">{t('Nom complet', 'الاسم الكامل')}</label>
-                  <input
-                    id="ca-name-login"
-                    type="text"
-                    name="name"
-                    value={authData.name}
-                    onChange={handleAuthChange}
-                    aria-invalid={fieldErrors.name ? true : undefined}
-                    aria-describedby={fieldErrors.name ? 'ca-name-error-login' : undefined}
-                    autoComplete="name"
-                    required
-                  />
-                  {fieldErrors.name && (
-                    <p className="field-error" id="ca-name-error-login" role="alert">{fieldErrors.name}</p>
-                  )}
-                </div>
-                <div className="form-row">
-                  <label htmlFor="ca-phone-login">{t('Téléphone', 'الهاتف')}</label>
-                  <input
-                    id="ca-phone-login"
-                    type="tel"
-                    name="phone"
-                    value={authData.phone}
-                    onChange={handleAuthChange}
-                    aria-invalid={fieldErrors.phone ? true : undefined}
-                    aria-describedby={fieldErrors.phone ? 'ca-phone-error-login' : undefined}
-                    autoComplete="tel"
-                    required
-                  />
-                  {fieldErrors.phone && (
-                    <p className="field-error" id="ca-phone-error-login" role="alert">{fieldErrors.phone}</p>
-                  )}
-                </div>
-              </div>
-              {authError && (
-                <div className="form-error" role="alert" style={{ marginBottom: 12 }}>{authError}</div>
-              )}
-              <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={authBusy}>
-                {authBusy
-                  ? t('Patientez...', 'يرجى الانتظار...')
-                  : t('Me connecter', 'تسجيل الدخول')}
-              </SpinningBorderButton>
-              <p className="form-note" style={{ textAlign: 'center', marginTop: 12 }}>
+              ) : (
                 <button type="button" className="btn-link-style" onClick={() => switchMode('signup')}>
                   {t('Pas encore de compte ? Créez-en un', 'ليس لديكِ حساب؟ أنشئيه')}
                 </button>
-              </p>
-            </form>
-          )}
+              )}
+            </p>
+              </>
+            )}
+          </form>
 
-          {dupAlert && (
-            <div className="alert-overlay">
+          {dupAlert && createPortal(<div className="alert-overlay">
               <div className="alert-box" role="alert">
                 <h4>{t('Compte déjà existant', 'الحساب موجود مسبقاً')}</h4>
                 <p>
@@ -454,8 +405,82 @@ export default function ClientAuthCard({ id, initialMode = 'signup', onAuthentic
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            </div>, document.body)}
+
+          {adminStep && createPortal(<div className="alert-overlay">
+              <div className="alert-box admin-step-box" role="dialog" aria-modal="true">
+                <button
+                  type="button"
+                  className="alert-close"
+                  aria-label={t('Fermer', 'إغلاق')}
+                  onClick={() => setAdminStep(null)}
+                  disabled={adminBusy}
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4>{t('Espace administration', 'لوحة الإدارة')}</h4>
+                <p>
+                  {t('Bienvenue', 'مرحباً')}
+                  {', '}
+                  <strong>{adminStep.name}</strong>{' '}
+                  —{' '}
+                  {adminStep.admin_role === 'superadmin'
+                    ? t('super administrateur', 'مدير عام')
+                    : t('administrateur', 'مديرة إدارة')}.
+                  <br />
+                  {t('Vérifiez votre identité pour gérer la plateforme.', 'تحقق من هويتك لإدارة المنصة.')}
+                </p>
+                <form onSubmit={handleAdminSubmit} noValidate>
+                  <div className="form-row">
+                    <label htmlFor="adm-email">{t('Email', 'البريد الإلكتروني')}</label>
+                    <input
+                      id="adm-email"
+                      type="email"
+                      name="email"
+                      value={adminCreds.email}
+                      onChange={handleAdminChange}
+                      autoComplete="email"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="form-row">
+                    <label htmlFor="adm-password">{t('Mot de passe', 'كلمة المرور')}</label>
+                    <input
+                      id="adm-password"
+                      type="password"
+                      name="password"
+                      value={adminCreds.password}
+                      onChange={handleAdminChange}
+                      autoComplete="current-password"
+                      required
+                    />
+                  </div>
+                  {adminError && (
+                    <div className="form-error" role="alert">{adminError}</div>
+                  )}
+                  <div className="alert-actions">
+                    <SpinningBorderButton type="submit" disabled={adminBusy}>
+                      {adminBusy
+                        ? t('Connexion...', 'جاري الدخول...')
+                        : t('Gérer la plateforme', 'إدارة المنصة')}
+                    </SpinningBorderButton>
+                  </div>
+                </form>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ marginTop: 12, fontSize: '.85rem' }}
+                  onClick={() => {
+                    setAdminStep(null);
+                    if (typeof onAuthenticated === 'function') onAuthenticated(adminStep);
+                  }}
+                  disabled={adminBusy}
+                >
+                  {t('Continuer comme simple client', 'المتابعة كعميلة عادية')}
+                </button>
+              </div>
+            </div>, document.body)}
         </div>
       </div>
     </div>

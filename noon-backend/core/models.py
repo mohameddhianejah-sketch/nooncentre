@@ -1,5 +1,7 @@
 import datetime
 
+from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 from django.utils import timezone
 
@@ -52,8 +54,8 @@ class Testimonial(models.Model):
     client = models.ForeignKey('ClientAccount', on_delete=models.SET_NULL, null=True, blank=True, related_name='testimonials')
     author_fr = models.CharField(max_length=100, default='Cliente NOON Center')
     author_ar = models.CharField(max_length=100, default='زبونة مركز NOON')
-    text_fr = models.TextField()
-    text_ar = models.TextField()
+    text_fr = models.TextField(blank=True)
+    text_ar = models.TextField(blank=True)
     rating = models.PositiveSmallIntegerField(default=5)
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
@@ -116,6 +118,7 @@ class SiteSettings(models.Model):
     about_fr = models.TextField(default="")
     about_ar = models.TextField(default="")
     founder_name = models.CharField(max_length=100, default='Saloua Nejah')
+    founder_photo = models.ImageField(upload_to='founder/', blank=True, null=True, help_text='Photo optionnelle de la fondatrice pour la carte "Notre histoire".')
     founded_year = models.PositiveIntegerField(default=2015)
     address_fr = models.CharField(max_length=255, default='Rue Ahmed Amine, Boumhel El Bassatine, Ben Arous — en face de la BIAT')
     address_ar = models.CharField(max_length=255, default='نهج أحمد أمين، بومهل البساتين، بن عروس — مقابل بنك BIAT')
@@ -153,8 +156,18 @@ class ClientAccount(models.Model):
     """Client account created from the booking form — name + phone, optional birthday."""
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=30, unique=True)
+    password_hash = models.CharField(max_length=128, blank=True, default='')
     birthday = models.DateField(null=True, blank=True, help_text="Optionnel")
     avatar = models.ImageField(upload_to='clients/', blank=True)
+    is_admin = models.BooleanField(
+        default=False,
+        help_text="Promu(e) admin depuis le tableau de bord. Seul le super admin peut modifier ce champ."
+    )
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        related_name='client_account',
+        help_text="Lien vers le compte Django (login email + mot de passe) de ce·tte admin promu·e."
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     last_booking_at = models.DateTimeField(null=True, blank=True)
 
@@ -165,16 +178,11 @@ class ClientAccount(models.Model):
     def __str__(self):
         return f"{self.name} — {self.phone}"
 
+    def set_password(self, raw_password):
+        self.password_hash = make_password(raw_password)
 
-class PhoneVerification(models.Model):
-    """One-time SMS code sent to confirm a client's phone number before signup."""
-    phone = models.CharField(max_length=30, unique=True)
-    code = models.CharField(max_length=6)
-    attempts = models.PositiveIntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Verify {self.phone}"
+    def check_password(self, raw_password):
+        return bool(self.password_hash) and check_password(raw_password, self.password_hash)
 
 
 class Booking(models.Model):
@@ -216,3 +224,25 @@ class Booking(models.Model):
 
     def __str__(self):
         return f"{self.name} — {self.preferred_date or 'no date'}"
+
+
+class AdminAuditLog(models.Model):
+    """Lightweight activity log for important admin/content actions
+    (gallery changes, settings/footer edits, reservation status updates, ...)."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='audit_logs')
+    action = models.CharField(max_length=60, help_text="Machine-readable action name, e.g. 'gallery_uploaded'")
+    target_type = models.CharField(max_length=50, blank=True, default='',
+                                   help_text="Target model name, e.g. 'gallery', 'booking', 'settings'")
+    target_key = models.CharField(max_length=255, blank=True, default='',
+                                  help_text="Human readable target reference (id or title)")
+    details = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Activity log entry'
+        verbose_name_plural = 'Activity log entries'
+
+    def __str__(self):
+        return f"{self.action} {self.target_key} ({self.created_at:%Y-%m-%d %H:%M})"

@@ -69,7 +69,10 @@ export default function CalendarPicker({ value, onChange, hours, lang }) {
       <div
         key={d}
         className={cls}
-        onClick={disabled ? undefined : () => onChange(iso)}
+        onClick={disabled ? undefined : (event) => {
+          event.preventDefault();
+          onChange(iso);
+        }}
         role={disabled ? undefined : 'button'}
         tabIndex={disabled ? undefined : 0}
       >

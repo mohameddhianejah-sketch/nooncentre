@@ -21,7 +21,9 @@ Edit `.env`:
 VITE_API_URL=http://localhost:8000/api
 ```
 
-Change this to your deployed API URL in production (e.g. `https://api.nooncenter.tn/api`).
+Set the deployed HTTPS API URL before building for production (e.g.
+`https://api.nooncenter.tn/api`). Production builds do not fall back to localhost
+or permit plain HTTP API URLs. A same-origin `/api` reverse-proxy path is also supported.
 
 ## What's inside
 
@@ -30,7 +32,7 @@ Change this to your deployed API URL in production (e.g. `https://api.nooncenter
 - **Booking form** — on submit, creates a real `Booking` record via the API **and**
   opens WhatsApp with a pre-filled message, so the salon gets both a database record
   to manage in the dashboard and an instant WhatsApp ping.
-- **Admin dashboard** (`/admin`, login at `/admin/login`) — protected by token auth:
+- **Admin dashboard** (`/admin`, login at `/admin/login`) — protected by a rotating, 12-hour token stored for the current browser tab:
   - **Overview** — booking/service counts at a glance
   - **Bookings** — filter by status, change status, delete
   - **Services & catégories** — full CRUD, including creating new categories
@@ -47,7 +49,3 @@ npm run build
 Outputs static files to `dist/` — deploy this to Netlify, Vercel, or any static host.
 Remember to set `VITE_API_URL` to your production API before building.
 
-## Default admin login (for local testing only)
-
-Username: `admin` / Password: `noonadmin2026` (created via the backend's
-`createsuperuser` step) — **change this before deploying**.

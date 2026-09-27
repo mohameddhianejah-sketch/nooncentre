@@ -5,66 +5,54 @@
 
 export function IconFace(props) {
   return (
-    <svg viewBox="0 0 48 48" {...props}>
-      <path d="M15 18 L19 11 L29 8 L36 14 L34 29 L27 37 L18 34 L13 27 Z" fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M15 18 L23 20 L34 17" fill="none" stroke="#D4517A" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M18 26 L21 24 M27 24 L30 26 M21 31 L27 31" fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="19" cy="19" r="1.5" fill="#D4517A" />
-      <circle cx="32" cy="13" r="1.2" fill="#D4517A" />
+    <svg viewBox="0 0 48 48" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M24 8.5c7.1 0 13.5 5.8 13.5 13.5v5.5c0 7.7-6.4 13.5-13.5 13.5S10.5 35.2 10.5 27.5v-5.5C10.5 14.3 16.9 8.5 24 8.5Z" stroke="#8C2F55" strokeWidth="1.6" />
+      <path d="M17.5 18c1.6-2.2 4-3.2 6.5-3.2 2.5 0 4.8 1 6.5 3.2" stroke="#D4517A" strokeWidth="1.4" />
+      <path d="M18.5 25.2h.01M29.5 25.2h.01" stroke="#8C2F55" strokeWidth="1.8" />
+      <path d="M18.8 31c2 2.1 3.7 3.1 5.2 3.1 1.5 0 3.2-1 5.2-3.1" stroke="#D4517A" strokeWidth="1.5" />
     </svg>
   );
 }
 
 export function IconLeaf(props) {
   return (
-    <svg viewBox="0 0 48 48" {...props}>
-      <path d="M10 29 C 15 13, 26 7, 39 9 C 40 22, 34 35, 19 38 C 14 36, 11 33, 10 29 Z"
-        fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M12 34 C 19 27, 26 20, 38 11" fill="none" stroke="#D4517A" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M19 28 L18 21 M25 22 L25 16 M30 18 L34 18" fill="none" stroke="#8C2F55" strokeWidth="1.2" strokeLinecap="round" />
-      <circle cx="39" cy="9" r="2" fill="none" stroke="#D4517A" strokeWidth="1.2" />
+    <svg viewBox="0 0 48 48" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M13 31.5C13 19.1 21.3 10 31.5 10c4.6 0 8.5 3.7 8.5 8.2 0 12.8-9 20.8-22.1 20.8C16.4 39 13 36.5 13 31.5Z" stroke="#8C2F55" strokeWidth="1.7" />
+      <path d="M13 31.5c8.5-3.2 15.5-8.5 22.7-17.2" stroke="#D4517A" strokeWidth="1.5" />
+      <path d="M23 26.5v-8.5M27.5 22h-8.5" stroke="#8C2F55" strokeWidth="1.5" />
     </svg>
   );
 }
 
 export function IconSparkle(props) {
   return (
-    <svg viewBox="0 0 48 48" {...props}>
-      <path d="M24 7 L27 18 L38 21 L27 24 L24 36 L21 24 L10 21 L21 18 Z"
-        fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinejoin="round" />
-      <path d="M34 31 L35.5 35.5 L40 37 L35.5 38.5 L34 43 L32.5 38.5 L28 37 L32.5 35.5 Z"
-        fill="none" stroke="#D4517A" strokeWidth="1.2" strokeLinejoin="round" />
-      <circle cx="12" cy="11" r="1.8" fill="#D4517A" />
-      <path d="M12 6 V4 M12 18 V16 M7 11 H5 M19 11 H17" stroke="#8C2F55" strokeWidth="1.1" strokeLinecap="round" />
+    <svg viewBox="0 0 48 48" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M24 9 27.8 18 37 21.8 27.8 25.6 24 35l-3.8-9.4L11 21.8 20.2 18 24 9Z" stroke="#8C2F55" strokeWidth="1.7" />
+      <path d="M35.5 30.2 37 34.2 41 35.7l-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5 1.5-4Z" stroke="#D4517A" strokeWidth="1.4" />
+      <circle cx="12" cy="13" r="1.7" fill="#D4517A" />
     </svg>
   );
 }
 
 export function IconPetal(props) {
   return (
-    <svg viewBox="0 0 48 48" {...props}>
-      <g fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinejoin="round">
-        <path d="M24 24 C 24 16, 19 10, 24 6 C 29 10, 24 16, 24 24 Z" />
-        <path d="M24 24 C 32 24, 38 19, 42 24 C 38 29, 32 24, 24 24 Z" />
-        <path d="M24 24 C 24 32, 29 38, 24 42 C 19 38, 24 32, 24 24 Z" />
-        <path d="M24 24 C 16 24, 10 29, 6 24 C 10 19, 16 24, 24 24 Z" />
-      </g>
-      <circle cx="24" cy="24" r="2.4" fill="#D4517A" />
+    <svg viewBox="0 0 48 48" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M24 9.5c5.6 4.9 8.6 10.8 9 17.3-6.4 2.1-12.9 1.9-18.5-2.6-1.9-7.1 3.5-12.8 9.5-14.7Z" stroke="#8C2F55" strokeWidth="1.7" />
+      <path d="M39 24.2c-5.1 4.8-10.9 6.2-17 5.4-1.7-5.8.2-11.2 5.1-16.1 7.7 1.8 11.5 6.6 11.9 10.7Z" stroke="#D4517A" strokeWidth="1.7" />
+      <path d="M24 38.5c-5.9-4.7-8.8-10.7-8.8-17.1 6.1-1.8 12.7-.8 18.2 4.4 1.8 6.6-2.4 12.7-9.4 12.7Z" stroke="#8C2F55" strokeWidth="1.7" />
+      <path d="M9.5 24c5.2-4.7 11.2-6.2 17.1-5.2 1.9 5.7.5 11.2-4.4 15.9-7.8-1.1-11.5-6.3-12.7-10.7Z" stroke="#D4517A" strokeWidth="1.7" />
+      <circle cx="24" cy="24" r="2.5" fill="#D4517A" />
     </svg>
   );
 }
 
 export function IconHand(props) {
   return (
-    <svg viewBox="0 0 48 48" {...props}>
-      <path d="M15 42 C 12 38, 11 32, 11 27 C 11 25, 12.5 24, 14 24 C 15.5 24, 16.5 25.5, 16.5 27
-               L 16.5 22 C 16.5 20, 18 19, 19.3 19 C 20.6 19, 22 20, 22 22 L 22 20
-               C 22 18, 23.5 17, 24.8 17 C 26.1 17, 27.5 18, 27.5 20 L 27.5 22
-               C 27.5 20.3, 28.8 19.2, 30.2 19.2 C 31.6 19.2, 33 20.3, 33 22.3
-               L 33 30 C 33 37, 30 42, 24 42 Z"
-        fill="none" stroke="#8C2F55" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <path d="M37 12 C 37.6 15, 39 16.4, 42 17 C 39 17.6, 37.6 19, 37 22 C 36.4 19, 35 17.6, 32 17 C 35 16.4, 36.4 15, 37 12 Z"
-        fill="#D4517A" />
+    <svg viewBox="0 0 48 48" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M15 19.8v-3.4c0-2.3 1.8-4.1 4.1-4.1s4.1 1.8 4.1 4.1v4h2.1v-4c0-2.3 1.8-4.1 4.1-4.1s4.1 1.8 4.1 4.1v13.3c0 4.9-4 8.9-8.9 8.9H19.3c-5 0-9-4-9-9v-6.7c0-2.6 2.1-4.7 4.7-4.7h.1v-3.8Z" stroke="#8C2F55" strokeWidth="1.7" />
+      <path d="M24 11.5v7M19.5 15.5v8M28.5 15.5v8" stroke="#D4517A" strokeWidth="1.5" />
+      <path d="M33.5 15.4c2 1.7 3.3 3.8 3.7 6.2" stroke="#D4517A" strokeWidth="1.5" />
+      <path d="M17 31.6c2.7 2.1 5.5 3.1 8.4 3.1 2.9 0 5.4-1 7.6-3.1" stroke="#8C2F55" strokeWidth="1.5" />
     </svg>
   );
 }

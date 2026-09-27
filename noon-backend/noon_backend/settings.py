@@ -10,21 +10,34 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Load variables from the .env file next to manage.py (never overrides real env vars)
 load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-insecure-secret-key-change-in-production')
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', '*').split(',')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() == 'true'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('DJANGO_SECRET_KEY must be set when DEBUG is disabled.')
+    SECRET_KEY = 'dev-only-insecure-key-do-not-use-in-production'
 
-# SMS verification provider (Twilio). Leave blank to run in dev mode:
-# codes are logged and returned in DEBUG responses instead of being sent.
+ALLOWED_HOSTS = [
+    host.strip() for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]' if DEBUG else ''
+    ).split(',') if host.strip()
+]
+if not DEBUG and (not ALLOWED_HOSTS or '*' in ALLOWED_HOSTS):
+    raise ImproperlyConfigured('Set DJANGO_ALLOWED_HOSTS to explicit production hostnames.')
+
+# Twilio providers. Leave blank to run in dev mode; booking notifications are
+# saved but reported as unavailable when WhatsApp credentials are missing.
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
 TWILIO_FROM_NUMBER = os.environ.get('TWILIO_FROM_NUMBER', '')
+TWILIO_WHATSAPP_FROM = os.environ.get('TWILIO_WHATSAPP_FROM', '')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -128,19 +141,39 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ---------------------------------------------------------------------
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'core.authentication.ExpiringTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
     # Centralized error handling: safe JSON for HTTP errors, sanitized 500s
     # instead of Django/Python tracebacks being exposed to clients.
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/hour',
+        'client_signup': '20/hour' if DEBUG else '5/hour',
+        'client_login': '20/hour' if DEBUG else '10/hour',
+        'admin_lookup': '20/hour' if DEBUG else '10/hour',
+        'public_booking': '10/hour',
+    },
 }
 
-CORS_ALLOWED_ORIGINS = os.environ.get(
-    'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173'
-).split(',')
-CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL', 'True') == 'True'
+CORS_ALLOWED_ORIGINS = [
+    origin.strip() for origin in os.environ.get(
+        'CORS_ALLOWED_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173' if DEBUG else '',
+    ).split(',') if origin.strip()
+]
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL', 'False').lower() == 'true'
+if not DEBUG and CORS_ALLOW_ALL_ORIGINS:
+    raise ImproperlyConfigured('CORS_ALLOW_ALL must be False in production.')
+
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+SECURE_SSL_REDIRECT = os.environ.get('DJANGO_SECURE_SSL_REDIRECT', str(not DEBUG)).lower() == 'true'
+SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', '31536000' if not DEBUG else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG

@@ -36,12 +36,23 @@ export default function BookingsPanel() {
   const [selected, setSelected] = useState(null);
   const [dayKey, setDayKey] = useState(null);
 
+  useEffect(() => {
+    let active = true;
+    const refresh = (showLoading = false) => {
+      if (showLoading) setLoading(true);
+      api.getBookings()
+        .then((data) => { if (active) { setBookings(data); setLoading(false); } })
+        .catch(() => { if (active) setLoading(false); });
+    };
+    refresh(true);
+    const interval = window.setInterval(() => refresh(), 15000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, []);
+
   function load() {
     setLoading(true);
     api.getBookings().then((data) => { setBookings(data); setLoading(false); }).catch(() => setLoading(false));
   }
-
-  useEffect(load, []);
 
   async function updateStatus(id, status) {
     setBookings(bookings.map((b) => (b.id === id ? { ...b, status } : b)));

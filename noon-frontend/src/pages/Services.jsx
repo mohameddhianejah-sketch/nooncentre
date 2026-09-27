@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../context/LangContext';
 import { api } from '../api';
-import { IconFace, IconLeaf, IconPetal, IconHand } from '../components/Illustrations';
+import { ScanFace, Leaf, Sparkles, Hand } from 'lucide-react';
+import { SpinningBorderLink } from '../components/SpinningBorderButton';
 import './services.css';
 
 const CATEGORY_ICONS = {
-  visage: IconFace,
-  corps: IconLeaf,
-  epilation: IconPetal,
-  mains: IconHand,
+  visage: ScanFace,
+  corps: Leaf,
+  epilation: Sparkles,
+  mains: Hand,
 };
 
 function bookUrl(serviceId) {
@@ -34,6 +35,28 @@ export default function Services() {
   }, []);
 
   useEffect(() => {
+    const els = document.querySelectorAll('.reveal');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) {
+      els.forEach((el) => el.classList.add('reveal-in'));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-in');
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [loading, categories.length]);
+
+  useEffect(() => {
     if (activeCat !== 'all' && categories.length > 0) {
       document.getElementById(`service-${activeCat}`)?.scrollIntoView({ block: 'start' });
     }
@@ -56,7 +79,7 @@ export default function Services() {
 
   return (
     <>
-      <section className="svc-intro">
+      <section className="svc-intro reveal">
         <div className="section-inner">
           <div className="svc-intro-layout">
             <div className="svc-intro-copy">
@@ -97,14 +120,14 @@ export default function Services() {
                     {comboLabels.map((label) => <span key={label}>{label}</span>)}
                   </div>
                 )}
-                <a href="#forfaits" className="btn btn-gold">{t('Voir les forfaits', 'اكتشفي الباقات')}</a>
+                <SpinningBorderLink href="#forfaits">{t('Voir les forfaits', 'اكتشفي الباقات')}</SpinningBorderLink>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <section className="svc-main">
+      <section className="svc-main reveal">
         <div className="section-inner">
           {loading && <p>{t('Chargement...', 'جاري التحميل...')}</p>}
 
@@ -126,10 +149,10 @@ export default function Services() {
                 if (items.length === 0) return null;
                 const CatIcon = CATEGORY_ICONS[c.slug];
                 return (
-                  <div className="svc-block" id={`service-${c.slug}`} key={c.id}>
+                  <div className="svc-block reveal" id={`service-${c.slug}`} key={c.id}>
                     <div className="svc-block-head">
                       <h3>
-                        {CatIcon && <CatIcon className="svc-block-icon" />}
+                        {CatIcon && <CatIcon className="svc-block-icon" strokeWidth={1.7} />}
                         {t(c.name_fr, c.name_ar)}
                       </h3>
                       <span>{items.length} {t('soins', 'عنايات')}</span>
@@ -170,7 +193,7 @@ export default function Services() {
                 const cat = categories.find((c) => c.services.some((s) => s.id === p.id));
                 return cat?.slug === activeCat;
               })) && (
-                <div className="svc-block" id="forfaits">
+                <div className="svc-block reveal" id="forfaits">
                   <div className="svc-block-head">
                     <h3>{t('Forfaits', 'الباقات')}</h3>
                     <span>{t('Le meilleur de NOON, en un rendez-vous', 'أفضل ما في NOON في موعد واحد')}</span>
@@ -187,9 +210,7 @@ export default function Services() {
                           <div>
                             <h3>{t(p.name_fr, p.name_ar)}</h3>
                             <p>{t(p.description_fr, p.description_ar)}</p>
-                            <Link to={bookUrl(p.id)} className="btn btn-gold" style={{ marginTop: 16 }}>
-                              {t('Réserver ce forfait', 'احجزي هذه الباقة')}
-                            </Link>
+                            <SpinningBorderLink to={bookUrl(p.id)}>{t('Réserver ce forfait', 'احجزي هذه الباقة')}</SpinningBorderLink>
                           </div>
                           <div className="price">
                             {p.price_tnd} <small>TND{p.old_price_tnd ? ` — ${t('au lieu de', 'بدل')} ${p.old_price_tnd}` : ''}</small>
@@ -211,13 +232,13 @@ export default function Services() {
         </div>
       </section>
 
-      <section className="bg-deep">
+      <section className="bg-deep reveal">
         <div className="section-inner cta-row">
           <div>
             <h2>{t('Envie de combiner plusieurs soins ?', 'تريدين الجمع بين عدة عنايات؟')}</h2>
             <p>{t('Cochez tous ceux que vous souhaitez dans le formulaire de réservation.', 'حدّدي كل ما ترغبين به في استمارة الحجز.')}</p>
           </div>
-          <Link to="/contact#booking" className="btn btn-gold">{t('Réserver maintenant', 'احجزي الآن')}</Link>
+          <SpinningBorderLink to="/contact#booking">{t('Réserver maintenant', 'احجزي الآن')}</SpinningBorderLink>
         </div>
       </section>
     </>

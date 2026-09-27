@@ -1,36 +1,64 @@
 // Dev: go through the Vite dev server proxy (same-origin), so the browser
 // never talks to the backend port directly (avoids CORS / network blocks).
-// Production: must be provided via VITE_API_URL or default to the local API.
+// Production: must use the deployed HTTPS API (or a same-origin /api proxy).
 const API_URL = import.meta.env.DEV
   ? '/api'
-  : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8002/api');
+  : import.meta.env.VITE_API_URL;
+if (!import.meta.env.DEV && !API_URL) {
+  throw new Error('VITE_API_URL must be set for production builds.');
+}
+if (!import.meta.env.DEV && /^http:\/\//i.test(API_URL)) {
+  throw new Error('Production API URLs must use HTTPS.');
+}
 const TOKEN_KEY = 'noon_admin_token';
 const CLIENT_KEY = 'noon_client';
 
+try {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem('noon_admin_username');
+  localStorage.removeItem(CLIENT_KEY);
+} catch {
+  // Storage may be unavailable in restricted browser contexts.
+}
+
 // Client account session (service client, identified by name + phone)
 export function getClient() {
-  try { return JSON.parse(localStorage.getItem(CLIENT_KEY)); } catch { return null; }
+  try {
+    const client = JSON.parse(sessionStorage.getItem(CLIENT_KEY));
+    if (!client || typeof client !== 'object' || (!client.name && !client.phone)) {
+      sessionStorage.removeItem(CLIENT_KEY);
+      return null;
+    }
+    return client;
+  } catch {
+    sessionStorage.removeItem(CLIENT_KEY);
+    return null;
+  }
 }
 export function setClient(client) {
-  if (client) localStorage.setItem(CLIENT_KEY, JSON.stringify(client));
-  else localStorage.removeItem(CLIENT_KEY);
+  if (client) sessionStorage.setItem(CLIENT_KEY, JSON.stringify(client));
+  else sessionStorage.removeItem(CLIENT_KEY);
   window.dispatchEvent(new CustomEvent('noon:client-updated'));
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return sessionStorage.getItem(TOKEN_KEY);
 }
 export function setToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
-  else localStorage.removeItem(TOKEN_KEY);
+  if (token) sessionStorage.setItem(TOKEN_KEY, token);
+  else sessionStorage.removeItem(TOKEN_KEY);
 }
 
-async function request(path, { method = 'GET', body, auth = false } = {}) {
+async function request(path, { method = 'GET', body, auth = false, clientAuth = false } = {}) {
   const isFormData = body instanceof FormData;
   const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
   if (auth) {
     const token = getToken();
     if (token) headers['Authorization'] = `Token ${token}`;
+  }
+  if (clientAuth && !headers['Authorization']) {
+    const token = getClient()?.session_token;
+    if (token) headers['Authorization'] = `Client ${token}`;
   }
   const res = await fetch(`${API_URL}${path}`, {
     method,
@@ -38,6 +66,11 @@ async function request(path, { method = 'GET', body, auth = false } = {}) {
     body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
   if (!res.ok) {
+    if (res.status === 401 && auth) {
+      setToken(null);
+      sessionStorage.removeItem('noon_admin_username');
+      window.dispatchEvent(new CustomEvent('noon:admin-session-expired'));
+    }
     let detail;
     try { detail = await res.json(); } catch { detail = { detail: res.statusText }; }
     const fieldError = Object.values(detail || {}).find((v) => Array.isArray(v) && v[0]);
@@ -86,29 +119,67 @@ export const api = {
   getCategories: () => request('/categories/'),
   getServices: () => request('/services/'),
   getTestimonials: () => request('/testimonials/'),
+  getAdminTestimonials: () => request('/testimonials/', { auth: true }),
   getGallery: () => request('/gallery/'),
   getHours: () => request('/hours/'),
   getSettings: () => request('/settings/'),
-  createBooking: (data) => request('/bookings/', { method: 'POST', body: data }),
+  createBooking: (data) => request('/bookings/', { method: 'POST', body: data, clientAuth: true }),
   getAvailability: (date) => request(`/availability/?date=${date}`),
 
   // Auth
   login: (username, password) => request('/auth/login/', { method: 'POST', body: { username, password } }),
+  getMe: () => request('/auth/me/', { auth: true }),
+  logout: () => request('/auth/logout/', { method: 'POST', auth: true }),
+
+  // Client self-service (verified client session)
+  getProfile: () => request('/clients/me/', { clientAuth: true }),
+  updateProfile: (data) => {
+    const fd = new FormData();
+    const { name, phone, birthday, avatar } = data;
+    if (name) fd.append('name', name);
+    if (phone) fd.append('phone', phone);
+    if (birthday) fd.append('birthday', birthday);
+    if (avatar) fd.append('avatar', avatar);
+    return request('/clients/me/', { method: 'PATCH', body: fd, clientAuth: true });
+  },
+  getMyBookings: (status) =>
+    request(`/bookings/my/${status ? `?status=${encodeURIComponent(status)}` : ''}`, { clientAuth: true }),
+  cancelMyBooking: (bookingId) =>
+    request('/bookings/my/cancel/', { method: 'POST', body: { booking_id: bookingId }, clientAuth: true }),
 
   // Admin (auth required)
   getDashboardSummary: () => request('/dashboard/summary/', { auth: true }),
 
   getBookings: () => request('/bookings/', { auth: true }),
+  getAdminBookings: (params) => {
+    const q = new URLSearchParams();
+    if (params?.q) q.set('q', params.q);
+    if (params?.status) q.set('status', params.status);
+    if (params?.page) q.set('page', params.page);
+    if (params?.page_size) q.set('page_size', params.page_size);
+    const qs = q.toString();
+    return request(`/bookings/${qs ? `?${qs}` : ''}`, { auth: true });
+  },
   updateBooking: (id, data) => request(`/bookings/${id}/`, { method: 'PATCH', body: data, auth: true }),
   deleteBooking: (id) => request(`/bookings/${id}/`, { method: 'DELETE', auth: true }),
 
   getClients: () => request('/clients/', { auth: true }),
+  getAdminClients: (params) => {
+    const q = new URLSearchParams();
+    if (params?.q) q.set('q', params.q);
+    if (params?.page) q.set('page', params.page);
+    if (params?.page_size) q.set('page_size', params.page_size);
+    const qs = q.toString();
+    return request(`/clients/${qs ? `?${qs}` : ''}`, { auth: true });
+  },
   createClient: (data) => request('/clients/', { method: 'POST', body: data }),
   checkClient: (data) => request('/clients/check/', { method: 'POST', body: data }),
-  sendCode: (data) => request('/clients/send-code/', { method: 'POST', body: data }),
-  verifyCode: (data) => request('/clients/verify/', { method: 'POST', body: data }),
+  loginClient: (data) => request('/clients/login/', { method: 'POST', body: data }),
   updateClient: (id, data) => request(`/clients/${id}/`, { method: 'PATCH', body: data, auth: true }),
   deleteClient: (id) => request(`/clients/${id}/`, { method: 'DELETE', auth: true }),
+
+  promoteClient: (id, data) => request(`/clients/${id}/promote/`, { method: 'POST', body: data, auth: true }),
+  demoteClient: (id) => request(`/clients/${id}/demote/`, { method: 'POST', auth: true }),
 
   createService: (data) => request('/services/', { method: 'POST', body: data, auth: true }),
   updateService: (id, data) => request(`/services/${id}/`, { method: 'PATCH', body: data, auth: true }),
@@ -118,7 +189,7 @@ export const api = {
   updateCategory: (id, data) => request(`/categories/${id}/`, { method: 'PATCH', body: data, auth: true }),
   deleteCategory: (id) => request(`/categories/${id}/`, { method: 'DELETE', auth: true }),
 
-  createTestimonial: (data) => request('/testimonials/', { method: 'POST', body: data, auth: true }),
+  createTestimonial: (data) => request('/testimonials/', { method: 'POST', body: data, auth: true, clientAuth: true }),
   updateTestimonial: (id, data) => request(`/testimonials/${id}/`, { method: 'PATCH', body: data, auth: true }),
   deleteTestimonial: (id) => request(`/testimonials/${id}/`, { method: 'DELETE', auth: true }),
 
@@ -129,4 +200,10 @@ export const api = {
   updateHour: (id, data) => request(`/hours/${id}/`, { method: 'PATCH', body: data, auth: true }),
 
   updateSettings: (data) => request('/settings/', { method: 'PATCH', body: data, auth: true }),
+
+  getAuditLogs: (params) => {
+    const q = new URLSearchParams();
+    if (params?.limit) q.set('limit', params.limit);
+    return request(`/admin/audit-logs/${q.toString() ? `?${q.toString()}` : ''}`, { auth: true });
+  },
 };

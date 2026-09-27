@@ -11,7 +11,7 @@ export default function TestimonialsPanel() {
   function load() {
     setLoading(true);
     // staff sees all incl. inactive because the viewset filters by is_staff
-    api.getTestimonials().then((data) => { setItems(data); setLoading(false); }).catch(() => setLoading(false));
+    api.getAdminTestimonials().then((data) => { setItems(data); setLoading(false); }).catch(() => setLoading(false));
   }
   useEffect(load, []);
 

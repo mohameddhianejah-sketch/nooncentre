@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLang } from '../context/LangContext';
 import { useTheme } from '../context/ThemeContext';
-import { getClient } from '../api';
+import { getClient, setClient } from '../api';
 import FlowButton from './FlowButton';
 import logo from '../assets/noon_logo.png';
 import blackLogo from '../assets/noon_logo_black.png';
@@ -11,14 +11,44 @@ export default function Header() {
   const { lang, setLang, t } = useLang();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
-  const [client, setClient] = useState(() => getClient());
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [clientEntering, setClientEntering] = useState(false);
+  const [client, setClientState] = useState(() => getClient());
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const sync = () => setClient(getClient());
+    const sync = () => {
+      const nextClient = getClient();
+      setClientState((currentClient) => {
+        if (!currentClient && nextClient) setClientEntering(true);
+        return nextClient;
+      });
+    };
     window.addEventListener('noon:client-updated', sync);
     return () => window.removeEventListener('noon:client-updated', sync);
   }, []);
+
+  useEffect(() => {
+    if (!clientEntering) return undefined;
+    const timer = window.setTimeout(() => setClientEntering(false), 720);
+    return () => window.clearTimeout(timer);
+  }, [clientEntering]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClickOutside(event) {
+      if (!event.target.closest('.client-menu-wrap')) setMenuOpen(false);
+    }
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [menuOpen]);
+
+  function handleLogout() {
+    setClient(null);
+    setMenuOpen(false);
+    navigate('/', { replace: true });
+  }
 
   const links = [
     { to: '/', fr: 'Accueil', ar: 'الرئيسية' },
@@ -49,7 +79,42 @@ export default function Header() {
 
         <div className="header-actions">
           {client ? (
-            <div className="client-badge" title={client.phone}>{client.name}</div>
+            <div className="client-menu-wrap">
+              <button
+                type="button"
+                className={`client-badge ${clientEntering ? 'client-entering' : ''}`}
+                title={client.phone}
+                aria-expanded={menuOpen}
+                aria-haspopup="menu"
+                onClick={(event) => {
+                  event.preventDefault();
+                  setMenuOpen((v) => !v);
+                }}
+              >
+                <span className="client-avatar" aria-hidden="true">
+                  {client.avatar_url
+                    ? <img src={client.avatar_url} alt="" />
+                    : (client.name?.slice(0, 1).toUpperCase() || 'N')}
+                </span>
+                <span className="client-name">{client.name}</span>
+              </button>
+              {menuOpen && (
+                <div className="client-menu" role="menu" aria-label={t('Menu du compte', 'قائمة الحساب')}>
+                  {client.session_token ? (
+                    <Link to="/dashboard" className="client-menu-item" onClick={() => setMenuOpen(false)}>
+                      {t('Mon profil', 'ملفي الشخصي')}
+                    </Link>
+                  ) : (
+                    <Link to="/contact#booking" className="client-menu-item" onClick={() => setMenuOpen(false)}>
+                      {t('Continuer la réservation', 'متابعة الحجز')}
+                    </Link>
+                  )}
+                  <button type="button" className="client-menu-item danger" onClick={handleLogout}>
+                    {t('Se déconnecter', 'تسجيل الخروج')}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <FlowButton to="/contact?mode=login#booking" className="auth-login">
               {t('Connexion', 'تسجيل الدخول')}

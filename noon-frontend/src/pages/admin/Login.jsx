@@ -6,17 +6,17 @@ import logo from '../../assets/logo.png';
 
 export default function Login() {
   const { login, error } = useAuth();
-  const [username, setUsername] = useState(import.meta.env.DEV ? 'admin' : '');
-  const [password, setPassword] = useState(import.meta.env.DEV ? 'noonadmin2026' : '');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    const ok = await login(username.trim(), password);
+    const { success } = await login(email.trim(), password);
     setLoading(false);
-    if (ok) navigate('/admin');
+    if (success) navigate('/admin');
   }
 
   return (
@@ -32,22 +32,31 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
-            <label>Nom d'utilisateur</label>
-            <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus />
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="vous@exemple.com"
+              autoComplete="email"
+              required
+              autoFocus
+            />
           </div>
           <div className="form-row">
             <label>Mot de passe</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
           </div>
           <SpinningBorderButton type="submit" style={{ width: '100%' }} disabled={loading}>
             {loading ? 'Connexion...' : 'Se connecter'}
           </SpinningBorderButton>
         </form>
-        {import.meta.env.DEV && (
-          <p className="sub" style={{ marginTop: 16 }}>
-            Compte local : <strong>admin</strong> / <strong>noonadmin2026</strong>
-          </p>
-        )}
       </div>
     </div>
   );

@@ -18,6 +18,21 @@ export default function ClientsPanel() {
     setClients(clients.filter((c) => c.id !== id));
   }
 
+  async function toggleAdmin(c) {
+    if (c.is_admin) {
+      if (!window.confirm('Rétrograder « ' + c.name + ' » ? Son accès admin (email + mot de passe) ne fonctionnera plus.')) return;
+      await api.demoteClient(c.id);
+      setClients(clients.map((x) => (x.id === c.id ? { ...x, is_admin: false } : x)));
+      return;
+    }
+    const email = window.prompt('Email de connexion admin pour « ' + c.name + ' » :', '').trim();
+    if (!email) return;
+    const password = window.prompt('Mot de passe (8+ caractères) pour ce compte admin :');
+    if (!password || password.length < 8) { window.alert('Mot de passe trop court (8+ caractères requis).'); return; }
+    await api.promoteClient(c.id, { email, password });
+    setClients(clients.map((x) => (x.id === c.id ? { ...x, is_admin: true } : x)));
+  }
+
   return (
     <>
       <div className="admin-toolbar">
@@ -39,6 +54,7 @@ export default function ClientsPanel() {
                 <th>Téléphone</th>
                 <th>Date de naissance</th>
                 <th>Réservations</th>
+                <th>Rôle</th>
                 <th>Compte créé le</th>
                 <th></th>
               </tr>
@@ -50,6 +66,15 @@ export default function ClientsPanel() {
                   <td><a href={`tel:${c.phone}`}>{c.phone}</a></td>
                   <td>{c.birthday || '—'}</td>
                   <td>{c.booking_count ?? 0}</td>
+                  <td>
+                    <button
+                      className={`role-toggle ${c.is_admin ? 'is-admin' : ''}`}
+                      title={c.is_admin ? 'Rétrograder ce client (il redevient simple client)' : 'Promouvoir ce client en admin'}
+                      onClick={() => toggleAdmin(c)}
+                    >
+                      {c.is_admin ? 'Admin' : 'Client'}
+                    </button>
+                  </td>
                   <td>{new Date(c.created_at).toLocaleDateString('fr-FR')}</td>
                   <td>
                     <button className="icon-btn" title="Supprimer" onClick={() => remove(c.id)}>✕</button>

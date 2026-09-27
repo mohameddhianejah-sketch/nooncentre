@@ -1,6 +1,13 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from .sms import normalize_phone
-from .models import ServiceCategory, Service, Testimonial, GalleryItem, OpeningHour, SiteSettings, Booking, ClientAccount
+from .client_sessions import get_client_session
+from .models import (
+    ServiceCategory, Service, Testimonial, GalleryItem, OpeningHour, SiteSettings, Booking,
+    ClientAccount, AdminAuditLog,
+)
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -97,7 +104,11 @@ class OpeningHourSerializer(serializers.ModelSerializer):
 class SiteSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSettings
-        fields = '__all__'
+        fields = [
+            'site_name', 'tagline_fr', 'tagline_ar', 'about_fr', 'about_ar',
+            'founder_name', 'founder_photo', 'founded_year', 'address_fr', 'address_ar',
+            'phone', 'whatsapp', 'facebook_url', 'map_query', 'latitude', 'longitude',
+        ]
 
 
 class ClientAccountSerializer(serializers.ModelSerializer):
@@ -106,7 +117,22 @@ class ClientAccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClientAccount
-        fields = ['id', 'name', 'phone', 'birthday', 'avatar', 'avatar_url', 'created_at', 'last_booking_at', 'booking_count']
+        fields = ['id', 'name', 'phone', 'birthday', 'avatar', 'avatar_url', 'is_admin', 'created_at', 'last_booking_at', 'booking_count']
+
+    def to_representation(self, obj):
+        data = super().to_representation(obj)
+        request = self.context.get('request')
+        is_staff = bool(request and getattr(request.user, 'is_staff', False))
+        if not is_staff:
+            data.pop('is_admin', None)
+        return data
+
+    def validate(self, attrs):
+        if 'is_admin' in attrs:
+            request = self.context.get('request')
+            if not (request and getattr(request.user, 'is_superuser', False)):
+                raise serializers.ValidationError({'is_admin': 'Seul le super admin peut modifier ce rôle.'})
+        return attrs
 
     def get_avatar_url(self, obj):
         if not obj.avatar:
@@ -114,6 +140,72 @@ class ClientAccountSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         url = obj.avatar.url
         return request.build_absolute_uri(url) if request else url
+
+
+class ClientSignupSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    class Meta:
+        model = ClientAccount
+        fields = ['name', 'phone', 'birthday', 'password']
+
+    def validate_phone(self, value):
+        normalized = normalize_phone(value)
+        digits = normalized.lstrip('+')
+        if not 8 <= len(digits) <= 15:
+            raise serializers.ValidationError('Enter a valid phone number.')
+        return normalized
+
+    def validate(self, attrs):
+        User = get_user_model()
+        candidate = User(username=attrs['phone'], first_name=attrs['name'])
+        try:
+            validate_password(attrs['password'], user=candidate)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'password': error.messages}) from error
+        return attrs
+
+    def create(self, validated_data):
+        raw_password = validated_data.pop('password')
+        client = ClientAccount(**validated_data)
+        client.set_password(raw_password)
+        client.save()
+        return client
+
+
+class ClientProfileUpdateSerializer(serializers.ModelSerializer):
+    """Used by a client to update their OWN profile (name / phone / birthday / avatar)."""
+    avatar = serializers.ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = ClientAccount
+        fields = ['name', 'phone', 'birthday', 'avatar']
+
+    def validate_name(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError('Le nom ne peut pas être vide.')
+        if len(value) < 2:
+            raise serializers.ValidationError('Le nom doit contenir au moins 2 caractères.')
+        return value
+
+    def validate_phone(self, value):
+        value = (value or '').strip()
+        norm = normalize_phone(value)
+        exists = ClientAccount.objects.filter(phone=norm)
+        if self.instance:
+            exists = exists.exclude(pk=self.instance.pk)
+        if exists.exists():
+            raise serializers.ValidationError('Ce numéro est déjà utilisé par un autre compte.')
+        return norm
+
+
+class AdminAuditLogSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True, default='')
+
+    class Meta:
+        model = AdminAuditLog
+        fields = ['id', 'username', 'action', 'target_type', 'target_key', 'details', 'created_at']
 
 
 class BookingSerializer(serializers.ModelSerializer):
@@ -129,34 +221,25 @@ class BookingSerializer(serializers.ModelSerializer):
             'category_slugs', 'category_times', 'preferred_date', 'preferred_time',
             'message', 'language', 'status', 'created_at', 'birthday',
         ]
-        read_only_fields = ['id', 'created_at', 'status']
+        read_only_fields = ['id', 'created_at']
 
     def create(self, validated_data):
         # allow status to default server-side regardless of client input
         validated_data.pop('status', None)
-        birthday = validated_data.pop('birthday', None)
+        validated_data.pop('birthday', None)
         client_id = validated_data.pop('client_id', None)
 
         client = None
-        if client_id:
+        request = self.context.get('request')
+        if request and request.user.is_staff and client_id:
             client = ClientAccount.objects.filter(pk=client_id).first()
-        if client is None:
-            phone = (validated_data.get('phone') or '').strip()
-            if phone:
-                defaults = {'name': validated_data.get('name', '')}
-                if birthday:
-                    defaults['birthday'] = birthday
-                client, _ = ClientAccount.objects.get_or_create(phone=phone, defaults=defaults)
-                if client.name != validated_data.get('name'):
-                    client.name = validated_data.get('name', client.name)
-                    client.save(update_fields=['name'])
-                if birthday and client.birthday != birthday:
-                    client.birthday = birthday
-                    client.save(update_fields=['birthday'])
+        elif request and request.headers.get('Authorization', '').startswith('Client '):
+            client = get_client_session(request)
 
         booking = super().create(validated_data)
-        booking.client = client
-        booking.save(update_fields=['client'])
+        if client:
+            booking.client = client
+            booking.save(update_fields=['client'])
 
         if client:
             from django.utils import timezone

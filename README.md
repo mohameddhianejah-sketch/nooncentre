@@ -55,11 +55,12 @@ DATABASE_URL=postgres://noon:PASSWORD@localhost:5432/nooncenter
 `.env` is gitignored; settings auto-loads it (via `python-dotenv`) but a real
 environment variable always wins. Tell Django to log in with any other Postgres by
 setting `DATABASE_URL`. Without it the backend falls back to SQLite
-(`noon-backend/db.sqlite3`), which is still kept here as a backup of the pre-migration
-data (a full export also exists as `db_export.json`).
+(`noon-backend/db.sqlite3`). Database backups and exports contain personal data;
+keep them outside this repository and never commit them.
 
-To rebuild the schema + load existing data from scratch on a new machine:
-`python manage.py migrate` then `python manage.py seed_data` (or `loaddata db_export.json`).
+To build the schema and starter data on a new machine, run `python manage.py migrate`
+then `python manage.py seed_data`. Restore a private backup only from a secured
+location outside the repository.
 
 ## Deploying
 

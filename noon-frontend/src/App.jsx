@@ -12,6 +12,8 @@ import Contact from './pages/Contact';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import RequireAuth from './pages/admin/RequireAuth';
+import ClientRoute from './pages/dashboard/ClientRoute';
+import UserDashboard from './pages/dashboard/UserDashboard';
 import GlobalErrorBoundary from './components/errors/GlobalErrorBoundary';
 import ErrorRoute from './components/errors/ErrorRoute';
 import ErrorPage from './components/errors/ErrorPage';
@@ -51,6 +53,15 @@ export default function App() {
                     <RequireAuth>
                       <Dashboard />
                     </RequireAuth>
+                  }
+                />
+
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ClientRoute>
+                      <UserDashboard />
+                    </ClientRoute>
                   }
                 />
 

@@ -82,6 +82,22 @@
   .auth-panel h3{ font-size:1.5rem; }
 }
 
+/* ---- admin identity step (email + password modal) ---- */
+.admin-step-box{ position:relative; text-align:left; }
+.alert-close{ position:absolute; top:10px; right:12px; width:34px; height:34px; padding:0; display:inline-flex; align-items:center; justify-content:center; flex:0 0 34px; border:1px solid transparent; border-radius:50%; background:transparent; color:var(--ink-soft); font:inherit; font-size:1.45rem; font-weight:300; line-height:1; cursor:pointer; appearance:none; transition:background .18s ease, color .18s ease, border-color .18s ease; }
+.alert-close:hover{ background:rgba(212,81,122,.12); border-color:rgba(212,81,122,.3); color:var(--teal-ink); }
+.alert-close:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.alert-close:disabled{ opacity:.45; cursor:not-allowed; }
+.admin-step-box h4{ text-align:center; }
+.admin-step-box .form-row input{
+  background:var(--surface);
+}
+.admin-step-box .form-error{ margin-bottom:14px; }
+.admin-step-box .alert-actions{
+  justify-content:center;
+  margin-top:4px;
+}
+
 @media (prefers-reduced-motion: reduce){
   .auth-media-slider, .auth-caption{ transition:none !important; }
 }

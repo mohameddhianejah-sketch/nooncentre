@@ -5,6 +5,7 @@ export default function SettingsPanel() {
   const [data, setData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
 
   useEffect(() => {
     api.getSettings().then(setData);
@@ -19,9 +20,22 @@ export default function SettingsPanel() {
     e.preventDefault();
     setSaving(true);
     try {
-      const updated = await api.updateSettings(data);
+      const payload = new FormData();
+      Object.entries(data || {}).forEach(([key, value]) => {
+        if (value === null || value === undefined) return;
+        if (key === 'founder_photo' && typeof value === 'string' && !photoFile) return;
+        if (key === 'latitude' || key === 'longitude') {
+          if (value !== '' && value !== null && value !== undefined) payload.append(key, value);
+          return;
+        }
+        payload.append(key, value);
+      });
+      if (photoFile) payload.set('founder_photo', photoFile);
+
+      const updated = await api.updateSettings(payload);
       setData(updated);
       setSaved(true);
+      setPhotoFile(null);
     } finally {
       setSaving(false);
     }
@@ -46,6 +60,21 @@ export default function SettingsPanel() {
       <div className="form-two">
         <div className="form-row"><label>Fondatrice</label><input value={data.founder_name} onChange={(e) => update('founder_name', e.target.value)} /></div>
         <div className="form-row"><label>Année de création</label><input type="number" value={data.founded_year} onChange={(e) => update('founded_year', e.target.value)} /></div>
+      </div>
+
+      <div className="form-row">
+        <label>Photo de la fondatrice</label>
+        <input type="file" accept="image/*" onChange={(e) => setPhotoFile(e.target.files?.[0] || null)} />
+        {data.founder_photo && !photoFile && (
+          <div style={{ marginTop: 10 }}>
+            <img src={data.founder_photo} alt="Fondatrice actuelle" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 16 }} />
+          </div>
+        )}
+        {photoFile && (
+          <div style={{ marginTop: 10 }}>
+            <img src={URL.createObjectURL(photoFile)} alt="Prévisualisation" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 16 }} />
+          </div>
+        )}
       </div>
 
       <div className="form-row"><label>Adresse (FR)</label><input value={data.address_fr} onChange={(e) => update('address_fr', e.target.value)} /></div>
