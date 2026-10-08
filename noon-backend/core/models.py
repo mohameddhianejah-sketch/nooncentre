@@ -40,6 +40,8 @@ class Service(models.Model):
     is_package = models.BooleanField(default=False, help_text="Highlight as a featured package/forfait")
     old_price_tnd = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True,
                                          help_text="Optional strike-through price, used for packages/promos")
+    price_is_from = models.BooleanField(default=False, help_text="Show the price as « à partir de »")
+    duration_minutes = models.PositiveIntegerField(default=30, help_text="Duration of the service, in minutes")
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 

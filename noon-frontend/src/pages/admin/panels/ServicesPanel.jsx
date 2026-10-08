@@ -3,7 +3,8 @@ import { api } from '../../../api';
 
 const emptyService = {
   name_fr: '', name_ar: '', description_fr: '', description_ar: '',
-  price_tnd: '', old_price_tnd: '', category: '', is_package: false, is_active: true, order: 0,
+  price_tnd: '', old_price_tnd: '', price_is_from: false, duration_minutes: 30,
+  category: '', is_package: false, is_active: true, order: 0,
 };
 
 export default function ServicesPanel() {
@@ -97,14 +98,15 @@ export default function ServicesPanel() {
         ) : (
           <table className="admin-table">
             <thead>
-              <tr><th>Nom</th><th>Catégorie</th><th>Prix (TND)</th><th>Forfait</th><th>Actif</th><th></th></tr>
+              <tr><th>Nom</th><th>Catégorie</th><th>Prix (TND)</th><th>Durée</th><th>Forfait</th><th>Actif</th><th></th></tr>
             </thead>
             <tbody>
               {allServices.map((s) => (
                 <tr key={s.id}>
                   <td>{s.name_fr}</td>
                   <td>{s.categoryObj.name_fr}</td>
-                  <td>{s.price_tnd}{s.old_price_tnd ? ` (au lieu de ${s.old_price_tnd})` : ''}</td>
+                  <td>{s.price_is_from ? 'à partir de ' : ''}{s.price_tnd}{s.old_price_tnd ? ` (au lieu de ${s.old_price_tnd})` : ''}</td>
+                  <td>{s.duration_minutes} min</td>
                   <td>{s.is_package ? 'Oui' : '—'}</td>
                   <td>{s.is_active ? '✓' : '—'}</td>
                   <td>
@@ -140,6 +142,12 @@ export default function ServicesPanel() {
               <div className="form-two">
                 <div className="form-row"><label>Prix (TND)</label><input type="number" step="0.01" required value={modal.data.price_tnd} onChange={(e) => setModal({ ...modal, data: { ...modal.data, price_tnd: e.target.value } })} /></div>
                 <div className="form-row"><label>Ancien prix (optionnel)</label><input type="number" step="0.01" value={modal.data.old_price_tnd || ''} onChange={(e) => setModal({ ...modal, data: { ...modal.data, old_price_tnd: e.target.value } })} /></div>
+              </div>
+              <div className="form-two">
+                <div className="form-row"><label>Durée (minutes)</label><input type="number" min="1" required value={modal.data.duration_minutes ?? 30} onChange={(e) => setModal({ ...modal, data: { ...modal.data, duration_minutes: e.target.value } })} /></div>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '.85rem' }}>
+                  <input type="checkbox" checked={!!modal.data.price_is_from} onChange={(e) => setModal({ ...modal, data: { ...modal.data, price_is_from: e.target.checked } })} /> Prix « à partir de »
+                </label>
               </div>
               <div className="form-two">
                 <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '.85rem' }}>

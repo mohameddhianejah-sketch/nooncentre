@@ -234,7 +234,7 @@ body.lang-ar .svc-desc-muted{ font-style:normal; }
   animation:promo-glow 1.1s ease-out .18s both;
 }
 .svc-packages .package-card > *{ position:relative; z-index:1; }
-.svc-block.reveal-in .package-card h3,
+.svc-packages .package-side{ display:flex; flex-direction:column; align-items:flex-end; gap:14px; }.svc-block.reveal-in .package-card h3,
 .svc-block.reveal-in .package-card p,
 .svc-block.reveal-in .package-card .sbb,
 .svc-block.reveal-in .package-card .price{
@@ -297,6 +297,7 @@ body.lang-ar .price-note{ font-family:'Aref Ruqaa', var(--serif); font-weight:70
   .svc-intro-layout{ grid-template-columns:1fr; gap:30px; }
   .svc-forfait-promo{ max-width:420px; }
   .svc-block-photo img{ height:200px; }
+  .svc-packages .package-side{ align-items:flex-start; }
 }
 @media (max-width:640px){
   .svc-grid{ grid-template-columns:1fr; }

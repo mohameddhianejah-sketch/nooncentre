@@ -879,6 +879,8 @@ body.lang-ar .wiz-step-count{ font-style:normal; }
 .wiz-next:disabled{ transform:none; opacity:.6; cursor:default; }
 .wiz-next.wiz-accent{ background:var(--accent); }
 .wiz-next.wiz-accent:hover:not(:disabled){ background:var(--accent-dark); }
+.wiz-next.wiz-whatsapp{ background:#25D366; color:#fff; text-decoration:none; }
+.wiz-next.wiz-whatsapp:hover:not(:disabled){ background:#1ebe5a; }
 
 .confirm-summary{ margin-bottom:18px; border:1px solid rgba(14,79,88,.12); border-radius:10px; padding:14px 16px; background:rgba(14,79,88,.04); }
 .confirm-row{ display:flex; gap:12px; padding:4px 0; font-size:.86rem; }

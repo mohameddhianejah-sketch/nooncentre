@@ -6,7 +6,7 @@ import CalendarPicker from '../components/CalendarPicker';
 import { SpinningBorderButton } from '../components/SpinningBorderButton';
 import LocationMapCard from '../components/LocationMapCard';
 import ClientAuthCard from '../components/ClientAuthCard';
-import { ImagePlus, X } from 'lucide-react';
+import { ImagePlus, MessageCircle, X } from 'lucide-react';
 
 const DAY_LABELS = {
   fr: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
@@ -48,6 +48,7 @@ export default function Contact() {
   const [stepError, setStepError] = useState('');
   const [status, setStatus] = useState(null); // null | 'sending' | 'success' | 'error'
   const [submitError, setSubmitError] = useState(null); // API detail when save fails
+  const [whatsappText, setWhatsappText] = useState(''); // saved booking summary for the success screen
   const [availability, setAvailability] = useState(null);
   const [anchorSlug, setAnchorSlug] = useState(null); // category whose time anchors the recommended sequence
   const [client, setClientState] = useState(() => getClient());
@@ -100,6 +101,8 @@ export default function Contact() {
     ...(otherSelected ? [t('Autre / Je ne sais pas encore', 'أخرى / لم أقرر بعد')] : []),
   ];
   const selectedTotal = selectedServices.reduce((sum, s) => sum + Number(s.price_tnd || 0), 0);
+  // A "starting from" price makes the total a minimum, not a final amount.
+  const totalPrefix = selectedServices.some((s) => s.price_is_from) ? `${t('À partir de', 'ابتداءً من')} ` : '';
 
   // Category slugs in the order the client selected their services.
   const orderedCatSlugs = (() => {
@@ -283,7 +286,34 @@ export default function Contact() {
   function startNewReservation() {
     setStatus(null);
     setSubmitError(null);
+    setWhatsappText('');
     setStep(1);
+  }
+
+  // French summary of the booking, sent to the centre's WhatsApp number.
+  function buildWhatsappText({ name, phone, date, times, message }) {
+    const services = [
+      ...selectedServices.map((s) => s.name_fr),
+      ...(otherSelected ? ['Autre / Je ne sais pas encore'] : []),
+    ].join(', ');
+    const dateLabel = date
+      ? new Date(`${date}T00:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      : '—';
+    const timeLines = Object.entries(times || {})
+      .filter(([, time]) => time)
+      .map(([slug, time]) => {
+        const c = categories.find((x) => x.slug === slug);
+        return `  • ${c?.name_fr || slug} : ${time}`;
+      });
+    return [
+      'Nouvelle réservation NOON Center',
+      `Nom : ${name}`,
+      `Téléphone : ${phone}`,
+      `Services : ${services || '—'}`,
+      `Date : ${dateLabel}`,
+      ...(timeLines.length ? ['Horaires :', ...timeLines] : []),
+      `Note : ${message?.trim() || '—'}`,
+    ].join('\n');
   }
 
   async function handleSubmit(e) {
@@ -318,10 +348,19 @@ export default function Contact() {
     // Only include the birthday when actually filled in: the API rejects an
     // explicit null (DateField without allow_null).
     if (cBirthday) bookingData.birthday = cBirthday;
+    const text = buildWhatsappText({ name: cName, phone: cPhone, date: form.date, times: form.times, message: form.message });
+    // Open the tab now, while we're still inside the click: browsers block
+    // popups opened after an await. It is pointed at WhatsApp once saved.
+    const waWindow = window.open('', '_blank');
+    if (waWindow) waWindow.opener = null;
     setSubmitError(null);
     setStatus('sending');
     try {
       await withTimeout(api.createBooking(bookingData), 8000);
+      const waUrl = `https://wa.me/${whatsapp}?text=${encodeURIComponent(text)}`;
+      if (waWindow) waWindow.location.replace(waUrl);
+      else window.location.assign(waUrl);
+      setWhatsappText(text);
       setStatus('success');
       setStepError('');
       setStep(1);
@@ -335,6 +374,7 @@ export default function Contact() {
         message: '',
       });
     } catch (err) {
+      waWindow?.close();
       setSubmitError(typeof err?.message === 'string' && err.message !== 'Request failed' ? err.message : null);
       setStatus('error');
     }
@@ -345,6 +385,20 @@ export default function Contact() {
   function timeToMin(val) {
     const [h, m1] = val.split(':').map(Number);
     return h * 60 + m1;
+  }
+
+  // Slots starting at or before this minute of the chosen day are in the past
+  // (-1 when the chosen day is in the future). Uses the centre's time zone.
+  function pastCutoffMin() {
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Tunis', year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+      }).formatToParts(new Date()).map((p) => [p.type, p.value])
+    );
+    const today = `${parts.year}-${parts.month}-${parts.day}`;
+    if (form.date !== today) return -1;
+    return Number(parts.hour) * 60 + Number(parts.minute);
   }
 
   // Duration of one appointment in a category (used to chain the follow-up).
@@ -380,9 +434,10 @@ export default function Contact() {
       const used = Number((counts[val] || {})[slug]) || 0;
       return used < cap;
     };
+    const cutoff = pastCutoffMin();
     const findNext = (slug, fromMin, excludeSlots) => {
       for (const val of allSlots) {
-        if (timeToMin(val) < fromMin) continue;
+        if (timeToMin(val) < fromMin || timeToMin(val) <= cutoff) continue;
         if (excludeSlots.has(val)) continue;
         if (isAvailable(slug, val)) return val;
       }
@@ -433,6 +488,7 @@ export default function Contact() {
     const chosen = form.times[slug];
     const isAnchor = anchorSlug === slug;
     const slots = [];
+    const cutoff = pastCutoffMin();
     let m = oh * 60 + om;
     const end = ch * 60 + cm;
     while (m < end) {
@@ -440,23 +496,26 @@ export default function Contact() {
       const used = Number((catCounts[val] || {})[slug]) || 0;
       const remaining = Math.max(0, cap - used);
       const isFull = remaining === 0;
-      const isSelected = chosen === val;
+      const isPast = m <= cutoff;
+      const isSelected = chosen === val && !isPast;
       let cls = 'time-slot';
       if (isSelected) cls += ' time-selected';
-      else if (isFull) cls += ' time-booked';
+      else if (isPast || isFull) cls += ' time-booked';
       slots.push(
         <button
           key={val}
           type="button"
           className={cls}
-          disabled={isFull}
+          disabled={isPast || isFull}
           onClick={() => pickTime(slug, val)}
         >
           {val}
           <em className="time-slot-avail">
-            {isFull
-              ? t('Plein', 'ممتلئ')
-              : (cap > 1 ? `${remaining}/${cap}` : t('Dispo', 'متاح'))}
+            {isPast
+              ? t('Passé', 'فات')
+              : isFull
+                ? t('Plein', 'ممتلئ')
+                : (cap > 1 ? `${remaining}/${cap}` : t('Dispo', 'متاح'))}
           </em>
         </button>
       );
@@ -734,8 +793,19 @@ export default function Contact() {
                     <div className="booking-complete-mark" aria-hidden="true">✓</div>
                     <span className="booking-complete-kicker">{t('Réservation enregistrée', 'تم تسجيل الحجز')}</span>
                     <h4>{t('Merci, votre demande est bien arrivée.', 'شكراً، وصل طلبكِ بنجاح.')}</h4>
-                    <p>{t('Notre équipe vous contactera bientôt pour confirmer les détails de votre rendez-vous.', 'سيتصل بكِ فريقنا قريباً لتأكيد تفاصيل موعدكِ.')}</p>
+                    <p>{t('Envoyez le message préparé dans WhatsApp pour finaliser votre réservation. Notre équipe vous contactera bientôt pour la confirmer.', 'أرسلي الرسالة الجاهزة في واتساب لإتمام حجزكِ. سيتصل بكِ فريقنا قريباً لتأكيده.')}</p>
                     <div className="booking-complete-actions">
+                      {whatsappText && (
+                        <a
+                          className="wiz-next wiz-whatsapp"
+                          href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(whatsappText)}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <MessageCircle size={18} aria-hidden="true" />
+                          {t('Rouvrir WhatsApp', 'إعادة فتح واتساب')}
+                        </a>
+                      )}
                       <button type="button" className="wiz-next wiz-accent" onClick={startNewReservation}>
                         {t('Nouvelle réservation', 'حجز موعد آخر')}
                       </button>
@@ -794,7 +864,7 @@ export default function Contact() {
                                       </svg>
                                     </span>
                                     <span className="chip-label">{t(s.name_fr, s.name_ar)}</span>
-                                    <em>{s.price_tnd} TND</em>
+                                    <em>{s.price_is_from ? `${t('dès', 'من')} ` : ''}{s.price_tnd} TND</em>
                                   </label>
                                 );
                               })}
@@ -824,7 +894,7 @@ export default function Contact() {
                     {selectedLabels.length > 0 && (
                       <div className="svc-pick-summary">
                         {selectedLabels.length} {t('sélectionné(s)', 'مختارة')}
-                        {selectedTotal > 0 ? ` · ${selectedTotal} TND` : ''}
+                        {selectedTotal > 0 ? ` · ${totalPrefix}${selectedTotal} TND` : ''}
                       </div>
                     )}
                   </div>
@@ -865,7 +935,7 @@ export default function Contact() {
                       <div className="confirm-row">
                         <span className="confirm-k">{t('Soins', 'العنايات')}</span>
                         <span className="confirm-v">
-                          {selectedLabels.join(' · ')}{selectedTotal > 0 ? ` · ${selectedTotal} TND` : ''}
+                          {selectedLabels.join(' · ')}{selectedTotal > 0 ? ` · ${totalPrefix}${selectedTotal} TND` : ''}
                         </span>
                       </div>
                       <div className="confirm-row">
@@ -874,7 +944,7 @@ export default function Contact() {
                       </div>
                       <div className="confirm-row confirm-total">
                         <span className="confirm-k">{t('Total', 'المجموع')}</span>
-                        <span className="confirm-v">{selectedTotal > 0 ? `${selectedTotal} TND` : t('À confirmer', 'يُحدد لاحقاً')}</span>
+                        <span className="confirm-v">{selectedTotal > 0 ? `${totalPrefix}${selectedTotal} TND` : t('À confirmer', 'يُحدد لاحقاً')}</span>
                       </div>
                       {catSlugsForTime.length > 0 && Object.keys(form.times).length > 0 && (
                         <div className="confirm-row confirm-plan">
@@ -929,8 +999,9 @@ export default function Contact() {
                   <button type="button" className="wiz-back" onClick={goBack}>
                     <span className="wiz-arrow">←</span> {t('Retour', 'رجوع')}
                   </button>
-                  <button type="submit" className="wiz-next wiz-accent" disabled={status === 'sending'}>
-                    {status === 'sending' ? t('Enregistrement...', 'جارٍ التسجيل...') : t('Confirmer la demande', 'تأكيد الطلب')}
+                  <button type="submit" className="wiz-next wiz-whatsapp" disabled={status === 'sending'}>
+                    <MessageCircle size={18} aria-hidden="true" />
+                    {status === 'sending' ? t('Enregistrement...', 'جارٍ التسجيل...') : t('Réserver via WhatsApp', 'احجزي عبر واتساب')}
                   </button>
                 </div>
               )}

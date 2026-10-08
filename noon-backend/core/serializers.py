@@ -18,7 +18,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'category', 'category_slug', 'name_fr', 'name_ar',
             'description_fr', 'description_ar', 'price_tnd', 'old_price_tnd',
-            'is_package', 'is_active', 'order',
+            'price_is_from', 'duration_minutes', 'is_package', 'is_active', 'order',
         ]
 
 
@@ -240,6 +240,22 @@ class BookingSerializer(serializers.ModelSerializer):
             'message', 'language', 'status', 'created_at', 'birthday',
         ]
         read_only_fields = ['id', 'created_at']
+
+    def validate(self, attrs):
+        # New bookings can't be in the past (staff editing an old booking is fine).
+        if self.instance is None and attrs.get('preferred_date'):
+            from django.utils import timezone
+            now = timezone.localtime()
+            day = attrs['preferred_date']
+            if day < now.date():
+                raise serializers.ValidationError({'preferred_date': 'Cette date est déjà passée.'})
+            if day == now.date():
+                times = [v for v in (attrs.get('category_times') or {}).values() if v]
+                if attrs.get('preferred_time'):
+                    times.append(attrs['preferred_time'].strftime('%H:%M'))
+                if any(str(v)[:5] <= now.strftime('%H:%M') for v in times):
+                    raise serializers.ValidationError({'preferred_time': 'Cet horaire est déjà passé.'})
+        return attrs
 
     def create(self, validated_data):
         # allow status to default server-side regardless of client input

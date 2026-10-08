@@ -39,62 +39,92 @@ class Command(BaseCommand):
             )
         self.stdout.write(self.style.SUCCESS('Opening hours ready'))
 
+        # Every category and service lasts 30 minutes.
+        duration = 30
         categories_data = [
-            ('visage', 'Visage', 'الوجه', 0, 30),
-            ('corps', 'Corps', 'الجسم', 1, 30),
-            ('epilation', 'Épilation', 'إزالة الشعر', 2, 30),
-            ('mains', 'Mains & pieds', 'اليدين والقدمين', 3, 30),
+            ('corps', 'Hammam & Corps', 'الحمّام والجسم', 0),
+            ('visage', 'Visage', 'الوجه', 1),
+            ('epilation', 'Épilation', 'إزالة الشعر', 2),
+            ('mains', 'Mains, pieds & ongles', 'اليدين والقدمين والأظافر', 3),
+            ('coiffure', 'Coiffure', 'تصفيف الشعر', 4),
         ]
         cats = {}
-        for slug, name_fr, name_ar, order, duration in categories_data:
+        for slug, name_fr, name_ar, order in categories_data:
             cat, _ = ServiceCategory.objects.update_or_create(
                 slug=slug, defaults=dict(name_fr=name_fr, name_ar=name_ar, order=order, duration_minutes=duration)
             )
             cats[slug] = cat
         self.stdout.write(self.style.SUCCESS('Categories ready'))
 
+        # (category, name_fr, name_ar, price, is_package, old_price, price_is_from)
         services_data = [
-            ('visage', 'Nettoyage de peau', 'تنظيف البشرة', 'Purifie et débarrasse la peau des impuretés.',
-             'تنقية البشرة والتخلص من الشوائب.', 50, False, None),
-            ('visage', 'Soin du visage classique', 'عناية كلاسيكية بالوجه', 'Nettoyage, gommage, masque et hydratation.',
-             'تنظيف، تقشير، قناع وترطيب.', 60, False, None),
-            ('visage', 'Soin anti-âge', 'عناية مضادة للشيخوخة', 'Raffermit et redonne éclat aux peaux matures.',
-             'يشد البشرة الناضجة ويمنحها الإشراق.', 90, False, None),
-            ('visage', 'Soin éclat & hydratation', 'عناية بالإشراق والترطيب', 'Idéal avant un événement.',
-             'مثالية قبل مناسبة.', 70, False, None),
+            ('corps', 'Hammam', 'حمّام', 15, False, None, False),
+            ('corps', 'Gommage corps', 'تقشير الجسم', 10, False, None, False),
+            ('corps', "Enveloppement à l'argile verte", 'لفافة بالطين الأخضر', 15, False, None, False),
+            ('corps', 'Massage relaxant corps 30 min', 'مساج استرخاء للجسم 30 دقيقة', 40, False, None, False),
+            ('corps', "Hammam + gommage + enveloppement à l'argile verte",
+             'حمّام + تقشير + لفافة بالطين الأخضر', 35, True, 40, False),
+            ('corps', 'Hammam + gommage + massage relaxant 30 min',
+             'حمّام + تقشير + مساج استرخاء 30 دقيقة', 60, True, 65, False),
+            ('corps', 'Massage relaxant 45 min + douche + brushing',
+             'مساج استرخاء 45 دقيقة + دوش + براشينغ', 80, True, None, False),
 
-            ('corps', 'Massage relaxant (1h)', 'مساج للاسترخاء (ساعة)', 'Détente profonde de tout le corps.',
-             'استرخاء عميق لكامل الجسم.', 80, False, None),
-            ('corps', 'Massage ciblé (30 min)', 'مساج موضعي (30 د)', 'Dos, nuque et épaules.',
-             'الظهر والرقبة والكتفين.', 45, False, None),
-            ('corps', 'Gommage corporel', 'تقشير الجسم', 'Exfolie et adoucit la peau.',
-             'يقشّر البشرة ويجعلها ناعمة.', 60, False, None),
-            ('corps', 'Enveloppement minceur', 'لفافات لنحت الجسم', 'Affine la silhouette, effet drainant.',
-             'ينحت القوام بتأثير مصفٍّ.', 90, False, None),
+            ('visage', 'Nettoyage de peau', 'تنظيف البشرة', 90, False, None, False),
+            ('visage', "Coup d'éclat visage", 'إشراقة الوجه', 40, False, None, False),
+            ('visage', 'Masque apaisant', 'قناع مهدّئ', 15, False, None, False),
+            ('visage', "Nettoyage de peau + coup d'éclat", 'تنظيف البشرة + إشراقة الوجه', 120, True, 130, False),
+            ('visage', "Coup d'éclat visage + brushing", 'إشراقة الوجه + براشينغ', 60, True, 65, False),
 
-            ('epilation', 'Demi-jambes', 'نصف الساقين', '', '', 20, False, None),
-            ('epilation', 'Jambes complètes', 'الساقين كاملتين', '', '', 35, False, None),
-            ('epilation', 'Aisselles', 'الإبطين', '', '', 15, False, None),
-            ('epilation', 'Maillot', 'منطقة البيكيني', '', '', 20, False, None),
-            ('epilation', 'Sourcils', 'الحواجب', '', '', 10, False, None),
+            ('epilation', 'Jambes complètes', 'الساقين كاملتين', 40, False, None, False),
+            ('epilation', 'Bras', 'الذراعين', 20, False, None, False),
+            ('epilation', 'Aisselles', 'الإبطين', 15, False, None, False),
+            ('epilation', 'Visage', 'الوجه', 20, False, None, False),
+            ('epilation', 'Sourcils', 'الحواجب', 12, False, None, False),
+            ('epilation', 'Lèvre supérieure', 'الشفة العليا', 10, False, None, False),
+            ('epilation', 'Bras + aisselles', 'الذراعين + الإبطين', 30, True, 35, False),
+            ('epilation', 'Visage + masque apaisant', 'الوجه + قناع مهدّئ', 30, True, 35, False),
+            ('epilation', 'Sourcils + lèvre supérieure', 'الحواجب + الشفة العليا', 20, True, 22, False),
 
-            ('mains', 'Manucure', 'مانيكير', '', '', 25, False, None),
-            ('mains', 'Pédicure', 'بديكير', '', '', 35, False, None),
-            ('mains', 'Pose vernis semi-permanent', 'طلاء أظافر شبه دائم', '', '', 30, False, None),
+            ('mains', 'Soins des mains', 'العناية باليدين', 25, False, None, False),
+            ('mains', 'Soins des pieds', 'العناية بالقدمين', 40, False, None, False),
+            ('mains', 'Vernis permanent', 'طلاء أظافر دائم', 30, False, None, False),
+            ('mains', 'Capsules gel', 'كبسولات جل', 30, False, None, False),
+            ('mains', 'Gel sur ongles naturels', 'جل على الأظافر الطبيعية', 30, False, None, False),
+            ('mains', 'Capsules gel + vernis permanent', 'كبسولات جل + طلاء دائم', 50, True, 60, False),
+            ('mains', 'Gel sur ongles naturels + vernis permanent',
+             'جل على الأظافر الطبيعية + طلاء دائم', 50, True, 60, False),
 
-            ('corps', 'Forfait Journée Détente', 'باقة يوم استرخاء',
-             "Soin du visage + gommage corporel + massage relaxant d'une heure.",
-             'عناية بالوجه + تقشير للجسم + مساج استرخاء لمدة ساعة.', 180, True, 220),
+            ('coiffure', 'Brushing', 'براشينغ', 25, False, None, False),
+            ('coiffure', 'Coupe', 'قصّ الشعر', 40, False, None, False),
+            ('coiffure', 'Égalisation des pointes', 'تسوية الأطراف', 15, False, None, False),
+            ('coiffure', 'Coloration', 'صبغة', 50, False, None, False),
+            ('coiffure', 'Coloration mèches', 'ميش ملوّن', 180, False, None, True),
+            ('coiffure', 'Coupe + brushing', 'قصّ + براشينغ', 60, True, 65, False),
+            ('coiffure', 'Coloration + égalisation + brushing', 'صبغة + تسوية الأطراف + براشينغ', 80, True, 90, False),
+            ('coiffure', 'Coloration mèches + égalisation + brushing',
+             'ميش ملوّن + تسوية الأطراف + براشينغ', 200, True, None, True),
         ]
-        for i, (cat_slug, nfr, nar, dfr, dar, price, is_pkg, old_price) in enumerate(services_data):
+        for i, (cat_slug, nfr, nar, price, is_pkg, old_price, is_from) in enumerate(services_data):
             Service.objects.update_or_create(
                 name_fr=nfr, category=cats[cat_slug],
                 defaults=dict(
-                    name_ar=nar, description_fr=dfr, description_ar=dar,
-                    price_tnd=price, is_package=is_pkg, old_price_tnd=old_price, order=i,
+                    name_ar=nar, description_fr='', description_ar='',
+                    price_tnd=price, is_package=is_pkg, old_price_tnd=old_price, price_is_from=is_from,
+                    duration_minutes=duration, is_active=True, order=i,
                 )
             )
         self.stdout.write(self.style.SUCCESS(f'{len(services_data)} services ready'))
+
+        # Starter services from the first version of the site, no longer offered.
+        # Hidden rather than deleted so past bookings keep their history.
+        retired = [
+            'Soin du visage classique', 'Soin anti-âge', 'Soin éclat & hydratation',
+            'Massage relaxant (1h)', 'Massage ciblé (30 min)', 'Gommage corporel',
+            'Enveloppement minceur', 'Forfait Journée Détente', 'Demi-jambes', 'Maillot',
+            'Manucure', 'Pédicure', 'Pose vernis semi-permanent',
+        ]
+        hidden = Service.objects.filter(name_fr__in=retired, is_active=True).update(is_active=False)
+        self.stdout.write(self.style.SUCCESS(f'{hidden} old services hidden'))
 
         self.stdout.write(self.style.SUCCESS('Testimonials are submitted by client accounts'))
 

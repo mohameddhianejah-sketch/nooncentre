@@ -177,7 +177,7 @@ export default function Services() {
                             )}
                           </div>
                           <div className="svc-card-foot">
-                            <div className="svc-price">{s.price_tnd} <small>TND</small></div>
+                            <div className="svc-price">{s.price_is_from && <small>{t('À partir de', 'ابتداءً من')} </small>}{s.price_tnd} <small>TND</small></div>
                             <Link to={bookUrl(s.id)} className="btn btn-ghost btn-sm">
                               {t('Réserver', 'احجزي')}
                             </Link>
@@ -210,10 +210,12 @@ export default function Services() {
                           <div>
                             <h3>{t(p.name_fr, p.name_ar)}</h3>
                             <p>{t(p.description_fr, p.description_ar)}</p>
-                            <SpinningBorderLink to={bookUrl(p.id)}>{t('Réserver ce forfait', 'احجزي هذه الباقة')}</SpinningBorderLink>
                           </div>
-                          <div className="price">
-                            {p.price_tnd} <small>TND{p.old_price_tnd ? ` — ${t('au lieu de', 'بدل')} ${p.old_price_tnd}` : ''}</small>
+                          <div className="package-side">
+                            <div className="price">
+                              {p.price_is_from && <small>{t('À partir de', 'ابتداءً من')} </small>}{p.price_tnd} <small>TND{p.old_price_tnd ? ` — ${t('au lieu de', 'بدل')} ${p.old_price_tnd}` : ''}</small>
+                            </div>
+                            <SpinningBorderLink to={bookUrl(p.id)}>{t('Réserver ce forfait', 'احجزي هذه الباقة')}</SpinningBorderLink>
                           </div>
                         </div>
                       ))}
