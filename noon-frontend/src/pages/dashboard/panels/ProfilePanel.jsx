@@ -21,6 +21,10 @@ export default function ProfilePanel() {
   const [errors, setErrors] = useState({});
   const [formError, setFormError] = useState('');
   const [success, setSuccess] = useState('');
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
 
   useEffect(() => {
     if (!client.id) { setLoading(false); return; }
@@ -90,9 +94,35 @@ export default function ProfilePanel() {
     }
   }
 
+  async function handlePasswordChange(e) {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordSuccess('');
+    if (passwordForm.next !== passwordForm.confirm) {
+      setPasswordError(t('Les nouveaux mots de passe ne correspondent pas.', 'كلمتا المرور الجديدتان غير متطابقتين.'));
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      const result = await api.changeClientPassword({
+        current_password: passwordForm.current,
+        new_password: passwordForm.next,
+      });
+      setClient({ ...client, session_token: result.session_token });
+      setPasswordForm({ current: '', next: '', confirm: '' });
+      setPasswordSuccess(t('Mot de passe modifié et enregistré.', 'تم تغيير كلمة المرور وحفظها.'));
+    } catch (error) {
+      const detail = error.data?.current_password || error.data?.new_password;
+      setPasswordError(Array.isArray(detail) ? detail[0] : detail || error.message);
+    } finally {
+      setPasswordSaving(false);
+    }
+  }
+
   if (loading) return <div className="loading-state">{t('Chargement…', 'جارٍ التحميل…')}</div>;
 
   return (
+    <>
     <form className="form-card user-profile-card" onSubmit={handleSave} noValidate>
       <h3>{t('Profil', 'الملف الشخصي')}</h3>
 
@@ -135,5 +165,28 @@ export default function ProfilePanel() {
         </SpinningBorderButton>
       </div>
     </form>
+    <form className="form-card user-profile-card password-change-card" onSubmit={handlePasswordChange} noValidate>
+      <h3>{t('Changer le mot de passe', 'تغيير كلمة المرور')}</h3>
+      {passwordSuccess && <div className="form-success" role="status">{passwordSuccess}</div>}
+      {passwordError && <div className="form-error" role="alert">{passwordError}</div>}
+      <div className="form-row">
+        <label htmlFor="current-password">{t('Mot de passe actuel', 'كلمة المرور الحالية')}</label>
+        <input id="current-password" type="password" autoComplete="current-password" value={passwordForm.current} onChange={(event) => setPasswordForm({ ...passwordForm, current: event.target.value })} required />
+      </div>
+      <div className="form-row">
+        <label htmlFor="new-password">{t('Nouveau mot de passe', 'كلمة المرور الجديدة')}</label>
+        <input id="new-password" type="password" autoComplete="new-password" minLength={8} value={passwordForm.next} onChange={(event) => setPasswordForm({ ...passwordForm, next: event.target.value })} required />
+      </div>
+      <div className="form-row">
+        <label htmlFor="confirm-password">{t('Confirmer le nouveau mot de passe', 'تأكيد كلمة المرور الجديدة')}</label>
+        <input id="confirm-password" type="password" autoComplete="new-password" minLength={8} value={passwordForm.confirm} onChange={(event) => setPasswordForm({ ...passwordForm, confirm: event.target.value })} required />
+      </div>
+      <div className="modal-actions">
+        <SpinningBorderButton type="submit" disabled={passwordSaving}>
+          {passwordSaving ? t('Enregistrement…', 'جارٍ الحفظ…') : t('Enregistrer le mot de passe', 'حفظ كلمة المرور')}
+        </SpinningBorderButton>
+      </div>
+    </form>
+    </>
   );
 }

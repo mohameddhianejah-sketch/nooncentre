@@ -23,7 +23,8 @@ from .models import (
 from .serializers import (
     ServiceCategorySerializer, ServiceSerializer, TestimonialSerializer, GalleryItemSerializer,
     OpeningHourSerializer, SiteSettingsSerializer, BookingSerializer,
-    ClientAccountSerializer, ClientProfileUpdateSerializer, ClientSignupSerializer,
+    ClientAccountSerializer, ClientProfileUpdateSerializer, ClientPasswordChangeSerializer,
+    ClientSignupSerializer,
     AdminAuditLogSerializer,
 )
 from .permissions import IsAdminOrReadOnly, IsMasterAdminOnly, IsStaffOnly
@@ -460,6 +461,22 @@ class ClientMeView(APIView):
             pass
         log_action(None, 'profile_updated', 'client', client.id, client.name)
         return Response(ClientAccountSerializer(client, context={'request': request}).data)
+
+
+class ClientPasswordChangeView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        client = get_client_session(request)
+        serializer = ClientPasswordChangeSerializer(
+            data=request.data,
+            context={'client': client},
+        )
+        serializer.is_valid(raise_exception=True)
+        client.set_password(serializer.validated_data['new_password'])
+        client.session_version += 1
+        client.save(update_fields=['password_hash', 'session_version'])
+        return Response({'session_token': issue_client_session(client)})
 
 
 class MyBookingsView(APIView):

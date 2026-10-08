@@ -4,6 +4,7 @@ from .views import (
     ServiceCategoryViewSet, ServiceViewSet, TestimonialViewSet, GalleryItemViewSet,
     OpeningHourViewSet, BookingViewSet, ClientAccountViewSet, SiteSettingsView,
     LoginView, LogoutView, DashboardSummaryView, AvailabilityView, AuthMeView, ClientMeView,
+    ClientPasswordChangeView,
     MyBookingsView, MyBookingCancelView, AuditLogView,
 )
 
@@ -22,6 +23,7 @@ urlpatterns = [
     path('auth/me/', AuthMeView.as_view(), name='auth-me'),
     path('auth/logout/', LogoutView.as_view(), name='auth-logout'),
     path('clients/me/', ClientMeView.as_view(), name='client-me'),
+    path('clients/me/password/', ClientPasswordChangeView.as_view(), name='client-password-change'),
     path('bookings/my/cancel/', MyBookingCancelView.as_view(), name='my-booking-cancel'),
     path('bookings/my/', MyBookingsView.as_view(), name='my-bookings'),
     path('admin/audit-logs/', AuditLogView.as_view(), name='audit-logs'),

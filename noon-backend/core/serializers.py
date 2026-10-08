@@ -200,6 +200,24 @@ class ClientProfileUpdateSerializer(serializers.ModelSerializer):
         return norm
 
 
+class ClientPasswordChangeSerializer(serializers.Serializer):
+    current_password = serializers.CharField(write_only=True, trim_whitespace=False)
+    new_password = serializers.CharField(write_only=True, trim_whitespace=False)
+
+    def validate(self, attrs):
+        client = self.context['client']
+        if not client.check_password(attrs['current_password']):
+            raise serializers.ValidationError({'current_password': 'Current password is incorrect.'})
+
+        User = get_user_model()
+        candidate = User(username=client.phone, first_name=client.name)
+        try:
+            validate_password(attrs['new_password'], user=candidate)
+        except DjangoValidationError as error:
+            raise serializers.ValidationError({'new_password': error.messages}) from error
+        return attrs
+
+
 class AdminAuditLogSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username', read_only=True, default='')
 

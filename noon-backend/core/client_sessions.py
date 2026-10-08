@@ -9,7 +9,10 @@ CLIENT_SESSION_MAX_AGE = 60 * 60 * 12
 
 
 def issue_client_session(client):
-    return signing.dumps({'client_id': client.pk}, salt=CLIENT_SESSION_SALT)
+    return signing.dumps(
+        {'client_id': client.pk, 'session_version': client.session_version},
+        salt=CLIENT_SESSION_SALT,
+    )
 
 
 def get_client_session(request, required=True):
@@ -27,10 +30,11 @@ def get_client_session(request, required=True):
             max_age=CLIENT_SESSION_MAX_AGE,
         )
         client_id = int(payload['client_id'])
+        session_version = int(payload['session_version'])
     except (signing.BadSignature, KeyError, TypeError, ValueError):
         raise AuthenticationFailed('client_session_invalid_or_expired')
 
     client = ClientAccount.objects.filter(pk=client_id).first()
-    if client is None:
+    if client is None or client.session_version != session_version:
         raise AuthenticationFailed('client_session_invalid_or_expired')
     return client

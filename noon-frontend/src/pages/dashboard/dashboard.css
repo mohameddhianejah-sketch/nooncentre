@@ -122,6 +122,10 @@
   background: linear-gradient(180deg, rgba(251, 241, 246, 0.75), rgba(247, 234, 241, 0.9));
 }
 
+.password-change-card {
+  margin-top: 24px;
+}
+
 .user-topbar {
   display: flex;
   align-items: center;

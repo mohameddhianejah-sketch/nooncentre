@@ -105,6 +105,40 @@ class ClientSessionAccessTests(TestCase):
         self.assertEqual(updated.data['name'], 'Updated Client')
         self.assertEqual(updated.data['phone'], '+21620300005')
 
+    def test_client_password_change_persists_hash_and_revokes_old_session(self):
+        client = ClientAccount.objects.create(name='Client One', phone='21620300006')
+        old_password = 'Beryl-Delta-7391!'
+        new_password = 'Topaz-Ocean-5824!'
+        client.set_password(old_password)
+        client.save(update_fields=['password_hash'])
+        old_session = issue_client_session(client)
+        self.api.credentials(HTTP_AUTHORIZATION=f'Client {old_session}')
+
+        rejected = self.api.post('/api/clients/me/password/', {
+            'current_password': 'incorrect-current-password',
+            'new_password': new_password,
+        }, format='json')
+        self.assertEqual(rejected.status_code, 400)
+        client.refresh_from_db()
+        self.assertTrue(client.check_password(old_password))
+
+        changed = self.api.post('/api/clients/me/password/', {
+            'current_password': old_password,
+            'new_password': new_password,
+        }, format='json')
+
+        self.assertEqual(changed.status_code, 200)
+        client.refresh_from_db()
+        self.assertTrue(client.check_password(new_password))
+        self.assertFalse(client.check_password(old_password))
+        self.assertGreater(client.session_version, 1)
+
+        old_session_response = self.api.get('/api/clients/me/')
+        self.assertIn(old_session_response.status_code, (401, 403))
+        self.api.credentials(HTTP_AUTHORIZATION=f"Client {changed.data['session_token']}")
+        new_session_response = self.api.get('/api/clients/me/')
+        self.assertEqual(new_session_response.status_code, 200)
+
     def test_staff_admin_cannot_promote_another_client(self):
         staff = get_user_model().objects.create_user(username='staff-user', is_staff=True)
         self.api.force_authenticate(user=staff)

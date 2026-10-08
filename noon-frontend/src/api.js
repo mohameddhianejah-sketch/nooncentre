@@ -142,6 +142,8 @@ export const api = {
     if (avatar) fd.append('avatar', avatar);
     return request('/clients/me/', { method: 'PATCH', body: fd, clientAuth: true });
   },
+  changeClientPassword: (data) =>
+    request('/clients/me/password/', { method: 'POST', body: data, clientAuth: true }),
   getMyBookings: (status) =>
     request(`/bookings/my/${status ? `?status=${encodeURIComponent(status)}` : ''}`, { clientAuth: true }),
   cancelMyBooking: (bookingId) =>

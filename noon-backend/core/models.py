@@ -157,6 +157,7 @@ class ClientAccount(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=30, unique=True)
     password_hash = models.CharField(max_length=128, blank=True, default='')
+    session_version = models.PositiveIntegerField(default=1)
     birthday = models.DateField(null=True, blank=True, help_text="Optionnel")
     avatar = models.ImageField(upload_to='clients/', blank=True)
     is_admin = models.BooleanField(
