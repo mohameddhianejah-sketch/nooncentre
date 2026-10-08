@@ -1,0 +1,1102 @@
+[
+{
+  "model": "core.servicecategory",
+  "pk": 1,
+  "fields": {
+    "name_fr": "Visage",
+    "name_ar": "الوجه",
+    "description_fr": "",
+    "description_ar": "",
+    "slug": "visage",
+    "order": 1,
+    "capacity": 1,
+    "duration_minutes": 30
+  }
+},
+{
+  "model": "core.servicecategory",
+  "pk": 2,
+  "fields": {
+    "name_fr": "Hammam & Corps",
+    "name_ar": "الحمّام والجسم",
+    "description_fr": "",
+    "description_ar": "",
+    "slug": "corps",
+    "order": 0,
+    "capacity": 1,
+    "duration_minutes": 30
+  }
+},
+{
+  "model": "core.servicecategory",
+  "pk": 3,
+  "fields": {
+    "name_fr": "Épilation",
+    "name_ar": "إزالة الشعر",
+    "description_fr": "",
+    "description_ar": "",
+    "slug": "epilation",
+    "order": 2,
+    "capacity": 1,
+    "duration_minutes": 30
+  }
+},
+{
+  "model": "core.servicecategory",
+  "pk": 4,
+  "fields": {
+    "name_fr": "Mains, pieds & ongles",
+    "name_ar": "اليدين والقدمين والأظافر",
+    "description_fr": "",
+    "description_ar": "",
+    "slug": "mains",
+    "order": 3,
+    "capacity": 1,
+    "duration_minutes": 30
+  }
+},
+{
+  "model": "core.servicecategory",
+  "pk": 5,
+  "fields": {
+    "name_fr": "Coiffure",
+    "name_ar": "تصفيف الشعر",
+    "description_fr": "",
+    "description_ar": "",
+    "slug": "coiffure",
+    "order": 4,
+    "capacity": 1,
+    "duration_minutes": 30
+  }
+},
+{
+  "model": "core.service",
+  "pk": 1,
+  "fields": {
+    "category": 1,
+    "name_fr": "Nettoyage de peau",
+    "name_ar": "تنظيف البشرة",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "90.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 7
+  }
+},
+{
+  "model": "core.service",
+  "pk": 2,
+  "fields": {
+    "category": 1,
+    "name_fr": "Soin du visage classique",
+    "name_ar": "عناية كلاسيكية بالوجه",
+    "description_fr": "Nettoyage, gommage, masque et hydratation.",
+    "description_ar": "تنظيف، تقشير، قناع وترطيب.",
+    "price_tnd": "60.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 1
+  }
+},
+{
+  "model": "core.service",
+  "pk": 3,
+  "fields": {
+    "category": 1,
+    "name_fr": "Soin anti-âge",
+    "name_ar": "عناية مضادة للشيخوخة",
+    "description_fr": "Raffermit et redonne éclat aux peaux matures.",
+    "description_ar": "يشد البشرة الناضجة ويمنحها الإشراق.",
+    "price_tnd": "90.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 2
+  }
+},
+{
+  "model": "core.service",
+  "pk": 4,
+  "fields": {
+    "category": 1,
+    "name_fr": "Soin éclat & hydratation",
+    "name_ar": "عناية بالإشراق والترطيب",
+    "description_fr": "Idéal avant un événement.",
+    "description_ar": "مثالية قبل مناسبة.",
+    "price_tnd": "70.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 3
+  }
+},
+{
+  "model": "core.service",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "name_fr": "Massage relaxant (1h)",
+    "name_ar": "مساج للاسترخاء (ساعة)",
+    "description_fr": "Détente profonde de tout le corps.",
+    "description_ar": "استرخاء عميق لكامل الجسم.",
+    "price_tnd": "80.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 4
+  }
+},
+{
+  "model": "core.service",
+  "pk": 6,
+  "fields": {
+    "category": 2,
+    "name_fr": "Massage ciblé (30 min)",
+    "name_ar": "مساج موضعي (30 د)",
+    "description_fr": "Dos, nuque et épaules.",
+    "description_ar": "الظهر والرقبة والكتفين.",
+    "price_tnd": "45.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 5
+  }
+},
+{
+  "model": "core.service",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "name_fr": "Gommage corporel",
+    "name_ar": "تقشير الجسم",
+    "description_fr": "Exfolie et adoucit la peau.",
+    "description_ar": "يقشّر البشرة ويجعلها ناعمة.",
+    "price_tnd": "60.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 6
+  }
+},
+{
+  "model": "core.service",
+  "pk": 8,
+  "fields": {
+    "category": 2,
+    "name_fr": "Enveloppement minceur",
+    "name_ar": "لفافات لنحت الجسم",
+    "description_fr": "Affine la silhouette, effet drainant.",
+    "description_ar": "ينحت القوام بتأثير مصفٍّ.",
+    "price_tnd": "90.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 7
+  }
+},
+{
+  "model": "core.service",
+  "pk": 9,
+  "fields": {
+    "category": 3,
+    "name_fr": "Demi-jambes",
+    "name_ar": "نصف الساقين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "20.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 8
+  }
+},
+{
+  "model": "core.service",
+  "pk": 10,
+  "fields": {
+    "category": 3,
+    "name_fr": "Jambes complètes",
+    "name_ar": "الساقين كاملتين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "40.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 12
+  }
+},
+{
+  "model": "core.service",
+  "pk": 11,
+  "fields": {
+    "category": 3,
+    "name_fr": "Aisselles",
+    "name_ar": "الإبطين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "15.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 14
+  }
+},
+{
+  "model": "core.service",
+  "pk": 12,
+  "fields": {
+    "category": 3,
+    "name_fr": "Maillot",
+    "name_ar": "منطقة البيكيني",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "20.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 11
+  }
+},
+{
+  "model": "core.service",
+  "pk": 13,
+  "fields": {
+    "category": 3,
+    "name_fr": "Sourcils",
+    "name_ar": "الحواجب",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "12.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 16
+  }
+},
+{
+  "model": "core.service",
+  "pk": 14,
+  "fields": {
+    "category": 4,
+    "name_fr": "Manucure",
+    "name_ar": "مانيكير",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "25.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 13
+  }
+},
+{
+  "model": "core.service",
+  "pk": 15,
+  "fields": {
+    "category": 4,
+    "name_fr": "Pédicure",
+    "name_ar": "بديكير",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "35.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 14
+  }
+},
+{
+  "model": "core.service",
+  "pk": 16,
+  "fields": {
+    "category": 4,
+    "name_fr": "Pose vernis semi-permanent",
+    "name_ar": "طلاء أظافر شبه دائم",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 15
+  }
+},
+{
+  "model": "core.service",
+  "pk": 17,
+  "fields": {
+    "category": 2,
+    "name_fr": "Forfait Journée Détente",
+    "name_ar": "باقة يوم استرخاء",
+    "description_fr": "Soin du visage + gommage corporel + massage relaxant d'une heure.",
+    "description_ar": "عناية بالوجه + تقشير للجسم + مساج استرخاء لمدة ساعة.",
+    "price_tnd": "180.00",
+    "is_package": true,
+    "old_price_tnd": "220.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": false,
+    "order": 16
+  }
+},
+{
+  "model": "core.service",
+  "pk": 18,
+  "fields": {
+    "category": 2,
+    "name_fr": "Hammam",
+    "name_ar": "حمّام",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "15.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 0
+  }
+},
+{
+  "model": "core.service",
+  "pk": 19,
+  "fields": {
+    "category": 2,
+    "name_fr": "Gommage corps",
+    "name_ar": "تقشير الجسم",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "10.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 1
+  }
+},
+{
+  "model": "core.service",
+  "pk": 20,
+  "fields": {
+    "category": 2,
+    "name_fr": "Enveloppement à l'argile verte",
+    "name_ar": "لفافة بالطين الأخضر",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "15.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 2
+  }
+},
+{
+  "model": "core.service",
+  "pk": 21,
+  "fields": {
+    "category": 2,
+    "name_fr": "Massage relaxant corps 30 min",
+    "name_ar": "مساج استرخاء للجسم 30 دقيقة",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "40.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 3
+  }
+},
+{
+  "model": "core.service",
+  "pk": 22,
+  "fields": {
+    "category": 2,
+    "name_fr": "Hammam + gommage + enveloppement à l'argile verte",
+    "name_ar": "حمّام + تقشير + لفافة بالطين الأخضر",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "35.00",
+    "is_package": true,
+    "old_price_tnd": "40.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 4
+  }
+},
+{
+  "model": "core.service",
+  "pk": 23,
+  "fields": {
+    "category": 2,
+    "name_fr": "Hammam + gommage + massage relaxant 30 min",
+    "name_ar": "حمّام + تقشير + مساج استرخاء 30 دقيقة",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "60.00",
+    "is_package": true,
+    "old_price_tnd": "65.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 5
+  }
+},
+{
+  "model": "core.service",
+  "pk": 24,
+  "fields": {
+    "category": 2,
+    "name_fr": "Massage relaxant 45 min + douche + brushing",
+    "name_ar": "مساج استرخاء 45 دقيقة + دوش + براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "80.00",
+    "is_package": true,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 6
+  }
+},
+{
+  "model": "core.service",
+  "pk": 25,
+  "fields": {
+    "category": 1,
+    "name_fr": "Coup d'éclat visage",
+    "name_ar": "إشراقة الوجه",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "40.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 8
+  }
+},
+{
+  "model": "core.service",
+  "pk": 26,
+  "fields": {
+    "category": 1,
+    "name_fr": "Masque apaisant",
+    "name_ar": "قناع مهدّئ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "15.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 9
+  }
+},
+{
+  "model": "core.service",
+  "pk": 27,
+  "fields": {
+    "category": 1,
+    "name_fr": "Nettoyage de peau + coup d'éclat",
+    "name_ar": "تنظيف البشرة + إشراقة الوجه",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "120.00",
+    "is_package": true,
+    "old_price_tnd": "130.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 10
+  }
+},
+{
+  "model": "core.service",
+  "pk": 28,
+  "fields": {
+    "category": 1,
+    "name_fr": "Coup d'éclat visage + brushing",
+    "name_ar": "إشراقة الوجه + براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "60.00",
+    "is_package": true,
+    "old_price_tnd": "65.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 11
+  }
+},
+{
+  "model": "core.service",
+  "pk": 29,
+  "fields": {
+    "category": 3,
+    "name_fr": "Bras",
+    "name_ar": "الذراعين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "20.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 13
+  }
+},
+{
+  "model": "core.service",
+  "pk": 30,
+  "fields": {
+    "category": 3,
+    "name_fr": "Visage",
+    "name_ar": "الوجه",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "20.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 15
+  }
+},
+{
+  "model": "core.service",
+  "pk": 31,
+  "fields": {
+    "category": 3,
+    "name_fr": "Lèvre supérieure",
+    "name_ar": "الشفة العليا",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "10.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 17
+  }
+},
+{
+  "model": "core.service",
+  "pk": 32,
+  "fields": {
+    "category": 3,
+    "name_fr": "Bras + aisselles",
+    "name_ar": "الذراعين + الإبطين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": true,
+    "old_price_tnd": "35.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 18
+  }
+},
+{
+  "model": "core.service",
+  "pk": 33,
+  "fields": {
+    "category": 3,
+    "name_fr": "Visage + masque apaisant",
+    "name_ar": "الوجه + قناع مهدّئ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": true,
+    "old_price_tnd": "35.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 19
+  }
+},
+{
+  "model": "core.service",
+  "pk": 34,
+  "fields": {
+    "category": 3,
+    "name_fr": "Sourcils + lèvre supérieure",
+    "name_ar": "الحواجب + الشفة العليا",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "20.00",
+    "is_package": true,
+    "old_price_tnd": "22.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 20
+  }
+},
+{
+  "model": "core.service",
+  "pk": 35,
+  "fields": {
+    "category": 4,
+    "name_fr": "Soins des mains",
+    "name_ar": "العناية باليدين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "25.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 21
+  }
+},
+{
+  "model": "core.service",
+  "pk": 36,
+  "fields": {
+    "category": 4,
+    "name_fr": "Soins des pieds",
+    "name_ar": "العناية بالقدمين",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "40.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 22
+  }
+},
+{
+  "model": "core.service",
+  "pk": 37,
+  "fields": {
+    "category": 4,
+    "name_fr": "Vernis permanent",
+    "name_ar": "طلاء أظافر دائم",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 23
+  }
+},
+{
+  "model": "core.service",
+  "pk": 38,
+  "fields": {
+    "category": 4,
+    "name_fr": "Capsules gel",
+    "name_ar": "كبسولات جل",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 24
+  }
+},
+{
+  "model": "core.service",
+  "pk": 39,
+  "fields": {
+    "category": 4,
+    "name_fr": "Gel sur ongles naturels",
+    "name_ar": "جل على الأظافر الطبيعية",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "30.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 25
+  }
+},
+{
+  "model": "core.service",
+  "pk": 40,
+  "fields": {
+    "category": 4,
+    "name_fr": "Capsules gel + vernis permanent",
+    "name_ar": "كبسولات جل + طلاء دائم",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "50.00",
+    "is_package": true,
+    "old_price_tnd": "60.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 26
+  }
+},
+{
+  "model": "core.service",
+  "pk": 41,
+  "fields": {
+    "category": 4,
+    "name_fr": "Gel sur ongles naturels + vernis permanent",
+    "name_ar": "جل على الأظافر الطبيعية + طلاء دائم",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "50.00",
+    "is_package": true,
+    "old_price_tnd": "60.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 27
+  }
+},
+{
+  "model": "core.service",
+  "pk": 42,
+  "fields": {
+    "category": 5,
+    "name_fr": "Brushing",
+    "name_ar": "براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "25.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 28
+  }
+},
+{
+  "model": "core.service",
+  "pk": 43,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coupe",
+    "name_ar": "قصّ الشعر",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "40.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 29
+  }
+},
+{
+  "model": "core.service",
+  "pk": 44,
+  "fields": {
+    "category": 5,
+    "name_fr": "Égalisation des pointes",
+    "name_ar": "تسوية الأطراف",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "15.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 30
+  }
+},
+{
+  "model": "core.service",
+  "pk": 45,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coloration",
+    "name_ar": "صبغة",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "50.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 31
+  }
+},
+{
+  "model": "core.service",
+  "pk": 46,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coloration mèches",
+    "name_ar": "ميش ملوّن",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "180.00",
+    "is_package": false,
+    "old_price_tnd": null,
+    "price_is_from": true,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 32
+  }
+},
+{
+  "model": "core.service",
+  "pk": 47,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coupe + brushing",
+    "name_ar": "قصّ + براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "60.00",
+    "is_package": true,
+    "old_price_tnd": "65.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 33
+  }
+},
+{
+  "model": "core.service",
+  "pk": 48,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coloration + égalisation + brushing",
+    "name_ar": "صبغة + تسوية الأطراف + براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "80.00",
+    "is_package": true,
+    "old_price_tnd": "90.00",
+    "price_is_from": false,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 34
+  }
+},
+{
+  "model": "core.service",
+  "pk": 49,
+  "fields": {
+    "category": 5,
+    "name_fr": "Coloration mèches + égalisation + brushing",
+    "name_ar": "ميش ملوّن + تسوية الأطراف + براشينغ",
+    "description_fr": "",
+    "description_ar": "",
+    "price_tnd": "200.00",
+    "is_package": true,
+    "old_price_tnd": null,
+    "price_is_from": true,
+    "duration_minutes": 30,
+    "is_active": true,
+    "order": 35
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 1,
+  "fields": {
+    "weekday": 0,
+    "is_closed": true,
+    "open_time": null,
+    "close_time": null
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 2,
+  "fields": {
+    "weekday": 1,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 3,
+  "fields": {
+    "weekday": 2,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 4,
+  "fields": {
+    "weekday": 3,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 5,
+  "fields": {
+    "weekday": 4,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 6,
+  "fields": {
+    "weekday": 5,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.openinghour",
+  "pk": 7,
+  "fields": {
+    "weekday": 6,
+    "is_closed": false,
+    "open_time": "09:00:00",
+    "close_time": "19:00:00"
+  }
+},
+{
+  "model": "core.sitesettings",
+  "pk": 1,
+  "fields": {
+    "site_name": "NOON Center",
+    "tagline_fr": "Votre moment de beauté et de sérénité",
+    "tagline_ar": "لحظتك الخاصة من الجمال والهدوء",
+    "about_fr": "Depuis 2015, NOON Center accompagne les femmes de Boumhel El Bassatine et de toute la région dans leurs moments de détente et de beauté. Fondé par Saloua Nejah, notre institut allie savoir-faire, écoute et douceur pour vous offrir des soins sur mesure, dans un cadre chaleureux et confidentiel.",
+    "about_ar": "منذ سنة 2015، يرافق مركز NOON نساء بومهل البساتين والمنطقة بأكملها في لحظات الاسترخاء والجمال. أسّسته سلوى نجاح، ويجمع معهدنا بين الخبرة والإصغاء واللطف لنقدّم لكِ عناية مخصّصة في أجواء دافئة وخاصة.",
+    "founder_name": "Saloua Nejah",
+    "founder_photo": "",
+    "founded_year": 2015,
+    "address_fr": "Rue Ahmed Amine, Boumhel El Bassatine, Ben Arous — en face de la BIAT",
+    "address_ar": "نهج أحمد أمين، بومهل البساتين، بن عروس — مقابل بنك BIAT",
+    "phone": "+21629909099",
+    "whatsapp": "+21629909099",
+    "facebook_url": "https://www.facebook.com/nooncenter2016/",
+    "map_query": "Boumhel El Bassatine, Ben Arous, Tunisia",
+    "latitude": "36.724800",
+    "longitude": "10.292000"
+  }
+},
+{
+  "model": "core.galleryitem",
+  "pk": 1,
+  "fields": {
+    "image": "",
+    "image_url": "/photos/center-noon-front.jpeg",
+    "title_fr": "L’espace NOON",
+    "title_ar": "فضاء نون",
+    "description_fr": "Un espace chaleureux pensé pour votre confort et votre intimité.",
+    "description_ar": "فضاء دافئ صُمّم لراحتك وخصوصيتك.",
+    "is_active": true,
+    "order": 0
+  }
+},
+{
+  "model": "core.galleryitem",
+  "pk": 2,
+  "fields": {
+    "image": "",
+    "image_url": "/photos/visage.jpg",
+    "title_fr": "Soins du visage",
+    "title_ar": "العناية بالوجه",
+    "description_fr": "Des soins précis pour révéler l’éclat naturel de votre peau.",
+    "description_ar": "عنايات دقيقة لإبراز الإشراقة الطبيعية لبشرتك.",
+    "is_active": true,
+    "order": 1
+  }
+},
+{
+  "model": "core.galleryitem",
+  "pk": 3,
+  "fields": {
+    "image": "",
+    "image_url": "/photos/corps.jpg",
+    "title_fr": "Rituels du corps",
+    "title_ar": "عناية الجسم",
+    "description_fr": "Un moment de détente profonde dans une atmosphère apaisante.",
+    "description_ar": "لحظة استرخاء عميق في أجواء هادئة.",
+    "is_active": true,
+    "order": 2
+  }
+},
+{
+  "model": "core.galleryitem",
+  "pk": 4,
+  "fields": {
+    "image": "",
+    "image_url": "/photos/mains.jpg",
+    "title_fr": "Beauté des mains",
+    "title_ar": "جمال اليدين",
+    "description_fr": "Des finitions soignées pour des mains élégantes au quotidien.",
+    "description_ar": "لمسات متقنة ليدين أنيقتين كل يوم.",
+    "is_active": true,
+    "order": 3
+  }
+}
+]
