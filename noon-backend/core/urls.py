@@ -7,6 +7,10 @@ from .views import (
     ClientPasswordChangeView,
     MyBookingsView, MyBookingCancelView, AuditLogView,
 )
+from .caisse import (
+    CaisseLoginView, CaisseMeView, CaisseBookingsView, SalesView, SaleCancelView,
+    CaisseSummaryView, CashierListView, CashierDetailView,
+)
 
 router = DefaultRouter()
 router.register('categories', ServiceCategoryViewSet, basename='category')
@@ -32,4 +36,14 @@ urlpatterns = [
     path('auth/login/', LoginView.as_view(), name='auth-login'),
     path('availability/', AvailabilityView.as_view(), name='availability'),
     path('dashboard/summary/', DashboardSummaryView.as_view(), name='dashboard-summary'),
+
+    # Caisse (point of sale)
+    path('caisse/login/', CaisseLoginView.as_view(), name='caisse-login'),
+    path('caisse/me/', CaisseMeView.as_view(), name='caisse-me'),
+    path('caisse/bookings/', CaisseBookingsView.as_view(), name='caisse-bookings'),
+    path('caisse/sales/', SalesView.as_view(), name='caisse-sales'),
+    path('caisse/sales/<int:pk>/cancel/', SaleCancelView.as_view(), name='caisse-sale-cancel'),
+    path('caisse/summary/', CaisseSummaryView.as_view(), name='caisse-summary'),
+    path('caisse/cashiers/', CashierListView.as_view(), name='caisse-cashiers'),
+    path('caisse/cashiers/<int:pk>/', CashierDetailView.as_view(), name='caisse-cashier-detail'),
 ]

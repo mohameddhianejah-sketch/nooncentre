@@ -14,6 +14,8 @@ import Dashboard from './pages/admin/Dashboard';
 import RequireAuth from './pages/admin/RequireAuth';
 import ClientRoute from './pages/dashboard/ClientRoute';
 import UserDashboard from './pages/dashboard/UserDashboard';
+import Caisse from './pages/caisse/Caisse';
+import CaisseLogin from './pages/caisse/CaisseLogin';
 import GlobalErrorBoundary from './components/errors/GlobalErrorBoundary';
 import ErrorRoute from './components/errors/ErrorRoute';
 import ErrorPage from './components/errors/ErrorPage';
@@ -64,6 +66,9 @@ export default function App() {
                     </ClientRoute>
                   }
                 />
+
+                <Route path="/caisse/login" element={<CaisseLogin />} />
+                <Route path="/caisse" element={<Caisse />} />
 
                 {/* Global error system */}
                 <Route path="/error" element={<ErrorRoute />} />

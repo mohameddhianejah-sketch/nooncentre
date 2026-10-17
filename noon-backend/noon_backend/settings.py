@@ -152,6 +152,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
     'DEFAULT_THROTTLE_RATES': {
         'login': '10/hour',
+        'caisse_login': '30/hour',
         'client_signup': '20/hour' if DEBUG else '5/hour',
         'client_login': '20/hour' if DEBUG else '10/hour',
         'admin_lookup': '20/hour' if DEBUG else '10/hour',

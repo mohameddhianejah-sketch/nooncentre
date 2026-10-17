@@ -249,3 +249,70 @@ class AdminAuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action} {self.target_key} ({self.created_at:%Y-%m-%d %H:%M})"
+
+
+class Sale(models.Model):
+    """A ticket rung up at the caisse (point of sale)."""
+    PAYMENT_CHOICES = [
+        ('cash', 'Espèces'),
+        ('card', 'Carte'),
+        ('mixed', 'Espèces + carte'),
+    ]
+    STATUS_CHOICES = [
+        ('paid', 'Payé'),
+        ('cancelled', 'Annulé'),
+    ]
+
+    cashier = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                related_name='sales')
+    booking = models.ForeignKey(Booking, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='sales')
+    client = models.ForeignKey(ClientAccount, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='sales')
+    client_name = models.CharField(max_length=100, blank=True)
+    client_phone = models.CharField(max_length=30, blank=True)
+    subtotal = models.DecimalField(max_digits=9, decimal_places=2)
+    discount = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=9, decimal_places=2)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES)
+    cash_amount = models.DecimalField(max_digits=9, decimal_places=2, default=0,
+                                      help_text="Part of the total paid in cash")
+    card_amount = models.DecimalField(max_digits=9, decimal_places=2, default=0,
+                                      help_text="Part of the total paid by card")
+    cash_received = models.DecimalField(max_digits=9, decimal_places=2, default=0,
+                                        help_text="Cash handed over by the client")
+    change_given = models.DecimalField(max_digits=9, decimal_places=2, default=0)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='paid')
+    cancel_reason = models.CharField(max_length=255, blank=True)
+    cancelled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+                                     blank=True, related_name='cancelled_sales')
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def number(self):
+        return f"{self.pk:06d}" if self.pk else ''
+
+    def __str__(self):
+        return f"Ticket {self.number} — {self.total} TND"
+
+
+class SaleLine(models.Model):
+    """One line of a ticket. Name and price are copied at sale time so later
+    price changes never alter past tickets."""
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE, related_name='lines')
+    service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True,
+                                related_name='sale_lines')
+    name = models.CharField(max_length=150)
+    unit_price = models.DecimalField(max_digits=9, decimal_places=2)
+    quantity = models.PositiveIntegerField(default=1)
+    line_total = models.DecimalField(max_digits=9, decimal_places=2)
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return f"{self.quantity} × {self.name}"

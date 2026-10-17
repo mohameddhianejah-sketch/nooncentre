@@ -10,11 +10,13 @@ import TestimonialsPanel from './panels/TestimonialsPanel';
 import GalleryPanel from './panels/GalleryPanel';
 import HoursPanel from './panels/HoursPanel';
 import SettingsPanel from './panels/SettingsPanel';
+import CaissePanel from './panels/CaissePanel';
 
 const TABS = [
   { key: 'overview', label: "Vue d'ensemble", Comp: OverviewPanel },
   { key: 'bookings', label: 'Réservations', Comp: BookingsPanel },
   { key: 'clients', label: 'Clients', Comp: ClientsPanel },
+  { key: 'caisse', label: 'Caisse & ventes', Comp: CaissePanel },
   { key: 'services', label: 'Services & catégories', Comp: ServicesPanel },
   { key: 'testimonials', label: 'Témoignages', Comp: TestimonialsPanel },
   { key: 'gallery', label: 'Galerie photos', Comp: GalleryPanel },

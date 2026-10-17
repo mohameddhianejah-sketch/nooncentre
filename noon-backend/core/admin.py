@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     ServiceCategory, Service, Testimonial, GalleryItem, OpeningHour, SiteSettings, Booking,
-    ClientAccount, AdminAuditLog,
+    ClientAccount, AdminAuditLog, Sale, SaleLine,
 )
 
 admin.site.site_header = "NOON Center — Administration"
@@ -90,3 +90,19 @@ class AdminAuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+class SaleLineInline(admin.TabularInline):
+    model = SaleLine
+    extra = 0
+    readonly_fields = ['service', 'name', 'unit_price', 'quantity', 'line_total']
+    can_delete = False
+
+
+@admin.register(Sale)
+class SaleAdmin(admin.ModelAdmin):
+    list_display = ['id', 'created_at', 'cashier', 'client_name', 'total', 'payment_method', 'status']
+    list_filter = ['status', 'payment_method', 'created_at']
+    search_fields = ['client_name', 'client_phone']
+    inlines = [SaleLineInline]
+    readonly_fields = [f.name for f in Sale._meta.fields]

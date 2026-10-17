@@ -11,6 +11,7 @@ if (!import.meta.env.DEV && /^http:\/\//i.test(API_URL)) {
   throw new Error('Production API URLs must use HTTPS.');
 }
 const TOKEN_KEY = 'noon_admin_token';
+const CAISSE_TOKEN_KEY = 'noon_caisse_token';
 const CLIENT_KEY = 'noon_client';
 
 try {
@@ -49,9 +50,27 @@ export function setToken(token) {
   else sessionStorage.removeItem(TOKEN_KEY);
 }
 
-async function request(path, { method = 'GET', body, auth = false, clientAuth = false } = {}) {
+// Caisse (cashier) session — kept apart from the admin token so the two
+// logins never mix on the same device.
+export function getCaisseSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem(CAISSE_TOKEN_KEY));
+  } catch {
+    return null;
+  }
+}
+export function setCaisseSession(session) {
+  if (session) sessionStorage.setItem(CAISSE_TOKEN_KEY, JSON.stringify(session));
+  else sessionStorage.removeItem(CAISSE_TOKEN_KEY);
+}
+
+async function request(path, { method = 'GET', body, auth = false, clientAuth = false, caisse = false } = {}) {
   const isFormData = body instanceof FormData;
   const headers = isFormData ? {} : { 'Content-Type': 'application/json' };
+  if (caisse) {
+    const token = getCaisseSession()?.token;
+    if (token) headers['Authorization'] = `Token ${token}`;
+  }
   if (auth) {
     const token = getToken();
     if (token) headers['Authorization'] = `Token ${token}`;
@@ -70,6 +89,10 @@ async function request(path, { method = 'GET', body, auth = false, clientAuth = 
       setToken(null);
       sessionStorage.removeItem('noon_admin_username');
       window.dispatchEvent(new CustomEvent('noon:admin-session-expired'));
+    }
+    if (res.status === 401 && caisse) {
+      setCaisseSession(null);
+      window.dispatchEvent(new CustomEvent('noon:caisse-session-expired'));
     }
     let detail;
     try { detail = await res.json(); } catch { detail = { detail: res.statusText }; }
@@ -202,6 +225,26 @@ export const api = {
   updateHour: (id, data) => request(`/hours/${id}/`, { method: 'PATCH', body: data, auth: true }),
 
   updateSettings: (data) => request('/settings/', { method: 'PATCH', body: data, auth: true }),
+
+  // Caisse (cashier session)
+  caisseLogin: (username, password) =>
+    request('/caisse/login/', { method: 'POST', body: { username, password } }),
+  caisseLogout: () => request('/auth/logout/', { method: 'POST', caisse: true }),
+  getCaisseBookings: () => request('/caisse/bookings/', { caisse: true }),
+  getCaisseSales: () => request('/caisse/sales/', { caisse: true }),
+  createSale: (data) => request('/caisse/sales/', { method: 'POST', body: data, caisse: true }),
+  cancelSale: (id, reason) =>
+    request(`/caisse/sales/${id}/cancel/`, { method: 'POST', body: { reason }, caisse: true }),
+  getCaisseSummary: () => request('/caisse/summary/', { caisse: true }),
+
+  // Caisse (admin views)
+  getAdminSales: (date) => request(`/caisse/sales/?date=${date}`, { auth: true }),
+  getAdminCaisseSummary: (date) => request(`/caisse/summary/?date=${date}`, { auth: true }),
+  cancelAdminSale: (id, reason) =>
+    request(`/caisse/sales/${id}/cancel/`, { method: 'POST', body: { reason }, auth: true }),
+  getCashiers: () => request('/caisse/cashiers/', { auth: true }),
+  createCashier: (data) => request('/caisse/cashiers/', { method: 'POST', body: data, auth: true }),
+  updateCashier: (id, data) => request(`/caisse/cashiers/${id}/`, { method: 'PATCH', body: data, auth: true }),
 
   getAuditLogs: (params) => {
     const q = new URLSearchParams();
